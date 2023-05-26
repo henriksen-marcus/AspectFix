@@ -5,8 +5,67 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AspectFix"
         mc:Ignorable="d"
-        Title="AspectFix" Height="350" Width="525">
-    <Grid>
+        Height="600" Width="920"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="Transparent"
+        AllowsTransparency="True">
+    <Border 
+        Background="#272537" 
+        CornerRadius="20">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            
+            <Grid.RowDefinitions>
+                <RowDefinition Height="75"></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <TextBlock 
+            Text="AspectFix"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Foreground="White"
+            FontSize="22"
+            />
+
+            <StackPanel Grid.Row="1"
+                        VerticalAlignment="Bottom">
+                <RadioButton Content="Github"
+                             Height="50"
+                             Foreground="White"
+                             FontSize="14"
+                             Style="{StaticResource MenuButtonTheme}"
+                             />
+                <RadioButton Content="About"
+                             Height="50"
+                             Foreground="White"
+                             FontSize="14"
+                             Style="{StaticResource MenuButtonTheme}"
+                             />
+
+            </StackPanel>
+
+            <ContentControl Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="10"/>
+            
+
+            <!--<Button x:Name="CropButton" Grid.Column="1"
+                    Grid.Row="1"
+                    Content="Crop"
+                    Height="50"
+                    Foreground="White"
+                    Background="Transparent"
+                    FontSize="14"
+                    Width="100">
+            </Button>-->
+        </Grid>
+
         
-    </Grid>
+
+    </Border>
 </Window>
