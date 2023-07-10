@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:gif="http://wpfanimatedgif.codeplex.com"
         xmlns:local="clr-namespace:AspectFix"
         mc:Ignorable="d"
+        Title="MainWindow" 
         Height="700" Width="450"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -13,23 +13,19 @@
         AllowsTransparency="True"
         WindowStartupLocation="CenterScreen"
         MouseDown="Window_MouseLeftButtonDown">
-
-    <Window.Resources>
-        <Style TargetType="Button">
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-    </Window.Resources>
-
-
+	<Window.Resources>
+		<Style TargetType="Button">
+			<Setter Property="Cursor" Value="Hand"/>
+		</Style>
+	</Window.Resources>
     <Border
-	    Background="#272537" 
-	    CornerRadius="20"
-	    BorderBrush="#635e82"
-	    BorderThickness="2">
+        Background="#272537" 
+        CornerRadius="20"
+        BorderBrush="#635e82"
+        BorderThickness="2">
 
-        
         <Grid>
-	        <!-- Overlay UI -->
+	        <!--Overlay UI-->
             <Border x:Name="OverlayUI" 
                     Background="#635e82"
                     CornerRadius="10"
@@ -43,184 +39,101 @@
                             VerticalAlignment="Center"
                             Margin="10">
                     <TextBlock Text="Cropping video.." 
-	                           FontSize="20" 
-	                           HorizontalAlignment="Center" 
-	                           Foreground="White"
-	                           Margin="10"
-	                           Panel.ZIndex="999"/>
-                    <!--<ProgressBar x:Name="ProgressBar" 
-                                 Width="300" 
-                                 Height="20"
-                                 Margin="10"
-                                 Panel.ZIndex="999"/>-->
+                                   FontSize="20" 
+                                   HorizontalAlignment="Center" 
+                                   Foreground="White"
+                                   Margin="10"
+                                   Panel.ZIndex="999"/>
                 </StackPanel>
-
             </Border>
 
             <Border x:Name="DarkenOverlay" 
-		                CornerRadius="20"
-		                Background="Black"
-		                Opacity="0.6"
-		                Panel.ZIndex="10"
-		                Margin="0"
-		                HorizontalAlignment="Stretch"
-		                VerticalAlignment="Stretch"
-		                Visibility="Collapsed">
+                        CornerRadius="20"
+                        Background="Black"
+                        Opacity="0.6"
+                        Panel.ZIndex="10"
+                        Margin="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Visibility="Collapsed">
             </Border>
 
-
-
-            <!-- Main window grid -->
+            <!--Main window grid-->
             <Grid ShowGridLines="False" ClipToBounds="True">
                 <Grid.RowDefinitions>
-                    <!-- Declare a new row -->
+                    <!--Declare a new row-->
                     <RowDefinition Height="75"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-
-                <!-- Top toolbar grid -->
+                <!--Top toolbar grid-->
                 <Grid Grid.Row="0" VerticalAlignment="Stretch" ShowGridLines="False">
-                    <!--<Grid.RowDefinitions>
-					<RowDefinition Height="*"/>
-				</Grid.RowDefinitions>-->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                    <!-- Here we create two columns -->
+                    <!--Here we create two columns-->
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150"></ColumnDefinition>
                         <ColumnDefinition Width="*" ></ColumnDefinition>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Application title -->
                     <TextBlock Grid.Column="0"
-					Text="AspectFix"
-					VerticalAlignment="Center"
-					HorizontalAlignment="Center"
-					Foreground="White"
-					FontSize="22"
-				/>
-
-                    <Button x:Name="CloseButton" Grid.Column="1" 
-				        HorizontalAlignment="Right"
-				        VerticalAlignment="Center"
-				        Width="40"
-				        Height="40"
-				        Foreground="White"
-				        Background="Transparent"
-				        FontSize="28"
-				        Margin="0 ,0 ,20,0"
-                        Panel.ZIndex="9999"
-				        Click="CloseButton_OnClick">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border x:Name="border" Background="Transparent">
-                                    <Grid>
-                                        <Image x:Name="image" Source="Images/close.png" Stretch="Uniform"/>
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="image" Property="Source" Value="Images/close_hovered.png"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                </Grid>
-
-                <!-- Content grid -->
-                <Grid Grid.Row="1" Grid.ShowGridLines="False">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="0.2*"/>
-                        <ColumnDefinition Width="0.6*"/>
-                        <ColumnDefinition Width="0.2*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="0.5*"/>
-                        <RowDefinition Height="0.1*"/>
-                        <RowDefinition Height="0.4*"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel 
-				    Grid.Row="0" 
-				    Grid.Column="1"
-				    Height="500">
-
-                        <!-- Drag drop box -->
-                        <Border Background="#635e82" 
-				            CornerRadius="10"
-				            BorderThickness="2"
-				            AllowDrop="True"
-				            Height="200"
-				            Margin="0 25 0 0"
-				            Drop="Border_Drop">
-                            <Border.BorderBrush>
-                                <DrawingBrush Viewport="0,0,8,8" ViewportUnits="Absolute" TileMode="FlipXY">
-                                    <DrawingBrush.Drawing>
-                                        <DrawingGroup>
-                                            <GeometryDrawing Brush="White">
-                                                <GeometryDrawing.Geometry>
-                                                    <GeometryGroup>
-                                                        <RectangleGeometry Rect="0,0,50,50" />
-                                                        <RectangleGeometry Rect="50,50,50,50" />
-                                                    </GeometryGroup>
-                                                </GeometryDrawing.Geometry>
-                                            </GeometryDrawing>
-                                        </DrawingGroup>
-                                    </DrawingBrush.Drawing>
-                                </DrawingBrush>
-                            </Border.BorderBrush>
-                            <TextBlock Text="Drag files here"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Center"
-                                   Foreground="White"
-                                   FontSize="16"/>
-                        </Border>
-                        <Border Background="#635e82"
-                            CornerRadius="10"
+                            Text="AspectFix"
+                            VerticalAlignment="Center"
                             HorizontalAlignment="Center"
-							VerticalAlignment="Center"
-                            Margin="0 10 0 0">
-                            <TextBlock x:Name="FileNameTextBlock" 
-                                   Text="No file selected" 
-                                   FontSize="16" 
-                                   HorizontalAlignment="Center" 
-                                   Foreground="White"
-                                   Margin="20 3 20 3"/>
-                        </Border>
-                    </StackPanel>
-
-                    <Button Width="100" 
-			            Height="30"
-			            Grid.Column="1"
-			            Grid.Row="1"
-			            Click="RunButton_Click"
-			            x:Name="RunButton">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="#635e82" CornerRadius="10">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <TextBlock Text="Crop" 
-				               Foreground="White"
-				               FontSize="16"/>
+                            Foreground="White"
+                            FontSize="22"
+                    />
+                    <Button x:Name="CloseButton" Grid.Column="1" 
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Width="32"
+                            Height="32"
+                            Foreground="White"
+                            FontSize="28"
+                            Margin="0 ,0 ,20,0"
+                            Panel.ZIndex="9999"
+                            Click="CloseButton_OnClick">
+	                    <Button.Style>
+		                    <Style TargetType="Button">
+                                <Setter Property="Background" Value="#635e82"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+			                    <Setter Property="Template">
+				                    <Setter.Value>
+					                    <ControlTemplate TargetType="Button">
+						                    <Border Background="{TemplateBinding Background}"
+						                            BorderBrush="{TemplateBinding BorderBrush}"
+						                            BorderThickness="0"
+						                            CornerRadius="5">
+							                    <ContentPresenter HorizontalAlignment="Center"
+							                                      VerticalAlignment="Center" />
+						                    </Border>
+					                    </ControlTemplate>
+				                    </Setter.Value>
+			                    </Setter>
+			                    <Style.Triggers>
+				                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#f23d3d" />
+				                    </Trigger>
+			                    </Style.Triggers>
+		                    </Style>
+	                    </Button.Style>
+	                    <Image Source="Images/x_thick.png"
+	                           Stretch="Uniform"
+	                           Width="16"/>
                     </Button>
-
                 </Grid>
+
+                <!--Content-->
+                <ContentControl Content="{Binding SelectedViewModel}"
+                                Grid.Row="1"
+                                Margin="0 10 0 0"
+                                x:Name="MyContentControl"/>
             </Grid>
-            <!-- End of main window grid -->
+            <!--End of main window grid-->
         </Grid>
-        <!-- End of overlay grid -->
+        <!--End of overlay grid-->
 
     </Border>
 </Window>
-
-<!-- Color palette:
-BG: #272537
-Border: #635e82
-Grey: #333540
-Grey Dark: #454857
--->

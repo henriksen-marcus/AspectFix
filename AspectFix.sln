@@ -1,6 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspectFix", "AspectFix\AspectFix.csproj", "{FE899B2B-DA57-4386-B480-0E816A90E7D5}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33723.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspectFix", "AspectFix\AspectFix.csproj", "{774027CC-D3D9-401A-8BF7-478441371614}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,9 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{FE899B2B-DA57-4386-B480-0E816A90E7D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FE899B2B-DA57-4386-B480-0E816A90E7D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FE899B2B-DA57-4386-B480-0E816A90E7D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FE899B2B-DA57-4386-B480-0E816A90E7D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{774027CC-D3D9-401A-8BF7-478441371614}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{774027CC-D3D9-401A-8BF7-478441371614}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{774027CC-D3D9-401A-8BF7-478441371614}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{774027CC-D3D9-401A-8BF7-478441371614}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {25754B5C-C638-4331-877C-8DE95493682A}
 	EndGlobalSection
 EndGlobal

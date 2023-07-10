@@ -4,13 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AspectFix.MVVM.ViewModel
+namespace AspectFix
 {
-    class MainViewModel : Core.ObservableObject
+    public class EditViewModel : BaseViewModel
     {
-        public MainViewModel()
-        {
-
-        }
     }
 }

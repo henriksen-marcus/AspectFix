@@ -1,0 +1,183 @@
+﻿<UserControl x:Class="AspectFix.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AspectFix"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="400"
+             Background="Transparent">
+    <UserControl.Resources>
+        <Style x:Key="DisabledButtonStyle" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+						        Background="#635e82"
+						        CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <!--<UserControl.DataContext>
+		<local:HomeView />
+	</UserControl.DataContext>-->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.2*"/>
+            <ColumnDefinition Width="0.6*"/>
+            <ColumnDefinition Width="0.2*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.25*"/>
+            <RowDefinition Height="0.05*"/>
+            <RowDefinition Height="0.3*"/>
+            <RowDefinition Height="0.1*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Drag drop box -->
+        <Border Background="#635e82" 
+			            CornerRadius="10"
+			            BorderThickness="2"
+			            AllowDrop="True"
+			            Grid.Row="0" 
+			            Grid.Column="1"
+			            Margin="0"
+			            Drop="Border_Drop">
+            <Border.BorderBrush>
+                <DrawingBrush Viewport="0,0,8,8" ViewportUnits="Absolute" TileMode="FlipXY">
+                    <DrawingBrush.Drawing>
+                        <DrawingGroup>
+                            <GeometryDrawing Brush="White">
+                                <GeometryDrawing.Geometry>
+                                    <GeometryGroup>
+                                        <RectangleGeometry Rect="0,0,50,50" />
+                                        <RectangleGeometry Rect="50,50,50,50" />
+                                    </GeometryGroup>
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                        </DrawingGroup>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </Border.BorderBrush>
+            <TextBlock Text="Drag a file here"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       Foreground="White"
+                       FontSize="16"/>
+        </Border>
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+            <!-- No file selected -->
+            <Border Background="#635e82"
+	                CornerRadius="10"
+	                HorizontalAlignment="Center"
+	                VerticalAlignment="Center">
+                <TextBlock x:Name="FileNameTextBlock" 
+                           Text="No file selected"
+		                   FontSize="16" 
+		                   HorizontalAlignment="Center" 
+		                   Foreground="White"
+		                   Margin="16 3 16 3"/>
+            </Border>
+            <!-- X Button -->
+            <Button x:Name="RemoveFileButton"
+					Background="Transparent"
+			        FontWeight="Bold"
+			        BorderThickness="0"
+			        Margin="4 0 0 0"
+			        FontSize="16"
+			        Grid.Row="1"
+			        Grid.Column="1"
+			        VerticalAlignment="Center"
+			        Visibility="Collapsed"
+					Click="RemoveFileButton_Click">
+                <!-- Remove default hover effect -->
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+						        BorderBrush="{TemplateBinding BorderBrush}"
+						        BorderThickness="{TemplateBinding BorderThickness}"
+						        SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+                <Image Source="../Images/x_thick.png"
+				       Height="16"
+				       Width="16"
+				       Stretch="Uniform"/>
+            </Button>
+        </StackPanel>
+
+        <!-- Continue button -->
+        <!--<Button Width="100" 
+                Height="30"
+                Grid.Column="1"
+                Grid.Row="3"
+                Click="ContinueButton_Click"
+                x:Name="ContinueButton"
+                IsEnabled="True"
+                Style="{StaticResource DisabledButtonStyle}">
+            <TextBlock Text="Continue" 
+		               Foreground="White"
+		               FontSize="16"/>
+        </Button>-->
+
+        <!--<Border Grid.Row="3"
+                Grid.ColumnSpan="3"
+                CornerRadius="0 0 10 10"
+                Background="#635e82">
+        </Border>-->
+
+        <Button x:Name="ContinueButton"
+				Width="100"
+                Height="30"
+				Content="Continue"
+                Background="#2e2e2e"
+                Foreground="White"
+                FontSize="18"
+                Click="ContinueButton_Click"
+                Grid.Row="3"
+                Grid.Column="1"
+                IsEnabled="False"
+                Style="{StaticResource DisabledButtonStyle}"/>
+	        <!--Full width button-->
+        <!--<Button 
+	        x:Name="ContinueButton" 
+	        Background="#2e2e2e" 
+	        Foreground="White" 
+	        Grid.Row="3" 
+	        Grid.ColumnSpan="3" 
+	        Click="ContinueButton_Click"
+	        Style="{StaticResource DisabledButtonStyle}">
+	        <Button.Template>
+		        <ControlTemplate TargetType="{x:Type Button}">
+			        <Grid Background="{TemplateBinding Background}">
+				        <Border CornerRadius="0 0 10 10">
+					        <ContentPresenter Margin="6,3,6,3" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				        </Border>
+			        </Grid>
+			        <ControlTemplate.Triggers>
+				        <Trigger Property="IsMouseOver" Value="True">
+					        <Setter Property="Background" Value="#555555" />
+				        </Trigger>
+			        </ControlTemplate.Triggers>
+		        </ControlTemplate>
+	        </Button.Template>
+	        <TextBlock Text="Continue" FontSize="18"/>
+        </Button>-->
+    </Grid>
+</UserControl>
