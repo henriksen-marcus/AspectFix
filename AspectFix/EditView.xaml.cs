@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AspectFix
 {
@@ -20,13 +22,81 @@ namespace AspectFix
     /// </summary>
     public partial class EditView : UserControl
     {
-        public EditView()
-        {
-            // Get video preview frames before rendering the view
+        private BitmapImage _oldPreview;
+        private BitmapImage _newPreview;
 
-            InitializeComponent();
+        private int _iterationCount = 1;
+        public int IterationCount
+        {
+            get => _iterationCount;
+            set
+            {
+                if (value > 3) _iterationCount = 3;
+                else if (value < 1) _iterationCount = 1;
+                else _iterationCount = value;
+
+                IterationsTextBlock.Text = "Iterations: " + _iterationCount.ToString();
+            }
         }
 
+        public EditView()
+        {
+            InitializeComponent();
+            MainWindow.Instance.ExitApp += Cleanup;
+            InitPreviews();
+        }
+
+        public void InitPreviews()
+        {
+            string oldPreviewPath = FileProcessor.GetPreviewImage(MainWindow.Instance.SelectedFile);
+            using (FileStream stream = File.OpenRead(oldPreviewPath))
+            {
+                _oldPreview = new BitmapImage();
+                _oldPreview.BeginInit();
+                _oldPreview.CacheOption = BitmapCacheOption.OnLoad;
+                _oldPreview.StreamSource = stream; // Set the stream as the StreamSource
+                _oldPreview.EndInit();
+            }
+
+            ImagePreviewOld.Source = _oldPreview;
+            UpdatePreview();
+        }
+
+        // Generates the cropped (new) preview image
+        private void UpdatePreview()
+        {
+            string newPreviewPath = FileProcessor.GetCroppedPreviewImage(MainWindow.Instance.SelectedFile, 1);
+            if (newPreviewPath != null)
+            {
+                if (_newPreview != null)
+                {
+                    _newPreview.StreamSource?.Dispose();
+                    _newPreview = null;
+                    GC.Collect();
+                }
+                using (FileStream stream = File.OpenRead(newPreviewPath))
+                {
+                    _newPreview = new BitmapImage();
+                    _newPreview.BeginInit();
+                    _newPreview.CacheOption = BitmapCacheOption.OnLoad;
+                    _newPreview.UriSource = new Uri(newPreviewPath);
+                    _newPreview.EndInit();
+                }
+                   
+                ImagePreviewNew.Source = _newPreview;
+            }
+        }
+
+        private void PlusButton_Click(object sender, RoutedEventArgs e)
+        {
+            IterationCount++;
+        }
+
+        private void MinusButton_Click(object sender, RoutedEventArgs e)
+        {
+            IterationCount--;
+        }
+        
         private void CropButton_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.Instance.ToggleOverlay();
@@ -34,6 +104,19 @@ namespace AspectFix
             MainWindow.Instance.ToggleOverlay();
 
             MainWindow.Instance.OnFileProcessed();
+            MainWindow.Instance.ChangeView("Home");
+        }
+
+        private void Cleanup()
+        {
+            _oldPreview.StreamSource?.Dispose();
+            _newPreview.StreamSource?.Dispose();
+            _oldPreview = null;
+            _newPreview = null;
+            GC.Collect();
+
+            File.Delete("preview_new.jpg");
+            File.Delete("preview_old.jpg");
         }
     }
 }

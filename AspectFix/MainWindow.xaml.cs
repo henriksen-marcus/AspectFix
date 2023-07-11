@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +29,9 @@ namespace AspectFix
         public delegate void FileProcessedEventHandler();
         public event FileProcessedEventHandler FileProcessed;
 
+        public delegate void ExitAppEventHandler();
+        public event ExitAppEventHandler ExitApp;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -41,14 +45,9 @@ namespace AspectFix
             FileProcessed?.Invoke();
         }
 
-        void HomeClick(object sender, RoutedEventArgs e)
+        public void OnExitApp()
         {
-            viewmodel.SelectedViewModel = new HomeViewModel();
-        }
-
-        void EditClick(object sender, RoutedEventArgs e)
-        {
-            viewmodel.SelectedViewModel = new EditViewModel();
+            ExitApp?.Invoke();
         }
 
         public void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -58,6 +57,7 @@ namespace AspectFix
 
         private void CloseButton_OnClick(object sender, RoutedEventArgs e)
         {
+            OnExitApp();
             Application.Current.Shutdown();
         }
 
@@ -65,6 +65,18 @@ namespace AspectFix
         {
             DarkenOverlay.Visibility = DarkenOverlay.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
             OverlayUI.Visibility = OverlayUI.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public void ChangeView(string viewName)
+        {
+            if (viewName == "Home")
+            {
+                viewmodel.SelectedViewModel = new HomeViewModel();
+            }
+            else if (viewName == "Edit")
+            {
+                viewmodel.SelectedViewModel = new EditViewModel();
+            }
         }
     }
 }

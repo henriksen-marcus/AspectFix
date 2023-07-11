@@ -80,7 +80,7 @@
                     Grid.Column="1"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
-            <!-- No file selected -->
+            <!-- File name box -->
             <Border Background="#635e82"
 	                CornerRadius="10"
 	                HorizontalAlignment="Center"
@@ -97,7 +97,7 @@
 					Background="Transparent"
 			        FontWeight="Bold"
 			        BorderThickness="0"
-			        Margin="4 0 0 0"
+			        Margin="6 0 0 0"
 			        FontSize="16"
 			        Grid.Row="1"
 			        Grid.Column="1"
@@ -153,7 +153,9 @@
                 Grid.Row="3"
                 Grid.Column="1"
                 IsEnabled="False"
-                Style="{StaticResource DisabledButtonStyle}"/>
+                Style="{StaticResource DisabledButtonStyle}"
+				VerticalAlignment="Bottom"
+				Margin="0 0 0 28"/>
 	        <!--Full width button-->
         <!--<Button 
 	        x:Name="ContinueButton" 

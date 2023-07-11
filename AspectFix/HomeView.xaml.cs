@@ -51,7 +51,7 @@ namespace AspectFix
         // this function changes the view to the edit view
         private void ContinueButton_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.Instance.viewmodel.SelectedViewModel = new EditViewModel();
+            MainWindow.Instance.ChangeView("Edit");
         }
 
         private void Border_DragEnter(object sender, DragEventArgs e)
