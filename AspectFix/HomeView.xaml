@@ -28,17 +28,14 @@
             </Setter>
         </Style>
     </UserControl.Resources>
-    <!--<UserControl.DataContext>
-		<local:HomeView />
-	</UserControl.DataContext>-->
-    <Grid>
+	<Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.2*"/>
             <ColumnDefinition Width="0.6*"/>
             <ColumnDefinition Width="0.2*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="0.25*"/>
+            <RowDefinition Height="0.28*"/>
             <RowDefinition Height="0.05*"/>
             <RowDefinition Height="0.3*"/>
             <RowDefinition Height="0.1*"/>
@@ -51,7 +48,7 @@
 			            AllowDrop="True"
 			            Grid.Row="0" 
 			            Grid.Column="1"
-			            Margin="0"
+			            Margin="0 15 0 0"
 			            Drop="Border_Drop">
             <Border.BorderBrush>
                 <DrawingBrush Viewport="0,0,8,8" ViewportUnits="Absolute" TileMode="FlipXY">

@@ -76,6 +76,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BaseViewModel.cs" />
+    <Compile Include="VideoFile.cs" />
     <Compile Include="Components\RoundedTitleBox.xaml.cs">
       <DependentUpon>RoundedTitleBox.xaml</DependentUpon>
     </Compile>

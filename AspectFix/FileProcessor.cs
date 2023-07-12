@@ -19,7 +19,7 @@ namespace AspectFix
             // Create the process start info
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = ffprobePath;
-            startInfo.Arguments = $"-v error -select_streams v -show_entries stream=width,height -of csv=p=0:s=x {videoPath}";
+            startInfo.Arguments = $"-v error -select_streams v -show_entries stream=width,height -of csv=p=0:s=x \"{videoPath}\"";
             startInfo.RedirectStandardOutput = true;
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;
@@ -45,61 +45,68 @@ namespace AspectFix
 
             // Parse the output to retrieve the width and height values
             string[] dimensions = output.Trim().Split('x');
-            int width = int.Parse(dimensions[0]);
-            int height = int.Parse(dimensions[1]);
 
-            return (width, height);
+            try
+            {
+                int width = int.Parse(dimensions[0]);
+                int height = int.Parse(dimensions[1]);
+                return (width, height);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Error:GetVideoDimensions: " + e.Message);
+                MessageBox.Show(output);
+            }
+
+            return (0, 0);
         }
 
-        public static (int, int) GetCroppedVideoDimensions(string videoPath, int iterations)
+        public static (int, int) GetCroppedVideoDimensions(VideoFile video, int iterations)
         {
-            (int width, int height) = GetVideoDimensions(videoPath);
-
             // Cropping from 16:9 to 9:16
-            int newWidth = height * 9 / 16;
+            int newWidth = video.Height * 9 / 16;
 
-            return (newWidth, height);
+            return (newWidth, video.Height);
         }
 
-        public static string Crop(string videoPath)
+        public static string Crop(VideoFile video)
         {
-            (int width, int height) = GetCroppedVideoDimensions(videoPath, 1);
+            (int width, int height) = GetCroppedVideoDimensions(video, 1);
 
-            string fileName = Path.GetFileName(videoPath);
-            string extension = Path.GetExtension(videoPath);
-            string newFileName = fileName.Replace(extension, ".cropped.mp4");
-            string newFilePath = Path.Combine(Path.GetDirectoryName(videoPath), newFileName);
+            string newFileName = $"{video.FileName}.cropped{video.Extension}";
+            string newFilePath = Path.Combine(Path.GetDirectoryName(video.Path), newFileName);
 
             // Saves to the same location as original file
-            string arguments = $"-i {videoPath} -filter:v \"crop={width}:{height}\" {newFilePath}";
-
-            Runffmpeg(arguments);
+            string arguments = $"-i \"{video.Path}\" -filter:v \"crop={width}:{height}\" \"{newFilePath}\"";
+            MessageBox.Show(arguments);
+            var success = Runffmpeg(arguments);
+            Console.WriteLine("Success: " + success);
 
             return File.Exists(newFilePath) ? newFilePath : null;
         }
 
-        public static string GetCroppedPreviewImage(string videoPath, int iterations)
+        public static string GetCroppedPreviewImage(VideoFile video, int iterations)
         {
-            (int width, int height) = GetCroppedVideoDimensions(videoPath, iterations);
+            (int width, int height) = GetCroppedVideoDimensions(video, iterations);
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_new.jpg");
-            string arguments = $"-i {videoPath} -ss 00:00:00 -frames:v 1 -vf \"crop={width}:{height}\" {savePath}";
+            string arguments = $"-i \"{video.Path}\" -ss 00:00:00 -frames:v 1 -vf \"crop={width}:{height}\" \"{savePath}\"";
 
             Runffmpeg(arguments);
-            
+
             return File.Exists(savePath) ? savePath : null;
         }
 
-        public static string GetPreviewImage(string videoPath)
+        public static string GetPreviewImage(VideoFile video)
         {
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old.jpg");
-            string arguments = $"-i {videoPath} -ss 00:00:00 -vframes 1 {savePath}";
+            string arguments = $"-i \"{video.Path}\" -ss 00:00:00 -vframes 1 \"{savePath}\"";
 
             Runffmpeg(arguments);
 
             return File.Exists(savePath) ? savePath : null;
         }
 
-        private static void Runffmpeg(string arguments)
+        private static bool Runffmpeg(string arguments)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = ffmpegPath;
@@ -111,6 +118,7 @@ namespace AspectFix
             // Start the process
             Process process = new Process();
             process.StartInfo = startInfo;
+            int exitCode;
 
             try
             {
@@ -121,13 +129,51 @@ namespace AspectFix
             catch (Exception ex)
             {
                 // Handle the exception
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("Error: " + ex.Message);
             }
             finally
             {
+                exitCode = process.ExitCode;
                 // Clean up the process
                 process.Close();
             }
+
+            return exitCode == 0;
+        }
+
+        // Truncates the string to maxLength and adds "..." in the middle
+        public static string ShortenString(string input, int maxLength)
+        {
+            if (string.IsNullOrEmpty(input) || input.Length <= maxLength)
+                return input;
+
+            if (maxLength < 4)
+                return input.Substring(0, maxLength); // Return the start of the string if maxLength is too small
+
+            int startLength = (maxLength - 3) / 2;
+            int endLength = (maxLength - 3) - startLength;
+
+            return input.Substring(0, startLength) + "..." + input.Substring(input.Length - endLength);
+        }
+
+        public static bool IsVideoFile(string filePath)
+        {
+            string extension = Path.GetExtension(filePath);
+
+            // Supported extensions by ffmpeg
+            string[] supportedVideoTypes = {
+                ".3g2", ".3gp", ".asf", ".avi", ".flv", ".m2v", ".m4v", ".mkv", ".mov", ".mp4",
+                ".mpeg", ".mpg", ".rm", ".swf", ".vob", ".webm", ".wmv"
+            };
+
+            // Compare the file extension (ignoring case)
+            return supportedVideoTypes.Contains(extension, StringComparer.OrdinalIgnoreCase);
+        }
+
+        public static bool IsVideoSquare(string videoPath)
+        {
+            var video = new VideoFile(videoPath);
+            return video.Width == video.Height;
         }
     }
 }

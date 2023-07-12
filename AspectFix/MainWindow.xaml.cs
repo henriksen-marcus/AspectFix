@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,35 +22,39 @@ namespace AspectFix
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainViewModel viewmodel;
-        public string SelectedFile { get; set; } = "";
-
+        public MainViewModel Viewmodel;
+        public VideoFile SelectedFile { get; private set; }
         public static MainWindow Instance { get; private set; }
 
+        // ---------- Events ---------- //
         public delegate void FileProcessedEventHandler();
-        public event FileProcessedEventHandler FileProcessed;
+        public event FileProcessedEventHandler OnFileProcessed;
 
         public delegate void ExitAppEventHandler();
-        public event ExitAppEventHandler ExitApp;
+        public event ExitAppEventHandler OnExitApp;
+
+        public delegate void ToggleDragOverlayEventHandler(bool isValidFile);
+        public event ToggleDragOverlayEventHandler OnToggleDragOverlay;
 
         public MainWindow()
         {
             InitializeComponent();
             Instance = this;
-            viewmodel = new MainViewModel();
-            DataContext = viewmodel;
+            Viewmodel = new MainViewModel();
+            DataContext = Viewmodel;
         }
 
-        public void OnFileProcessed()
+        public void FileProcessed() => OnFileProcessed?.Invoke();
+        public void ExitApp() => OnExitApp?.Invoke();
+        public void ToggleDragOverlay(bool isValidFile) => OnToggleDragOverlay?.Invoke(isValidFile);
+
+        public void SetSelectedFile(string path)
         {
-            FileProcessed?.Invoke();
+            if (path == null) SelectedFile = null;
+            else SelectedFile = new VideoFile(path);
         }
 
-        public void OnExitApp()
-        {
-            ExitApp?.Invoke();
-        }
-
+        // For dragging the window around
         public void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
@@ -57,7 +62,7 @@ namespace AspectFix
 
         private void CloseButton_OnClick(object sender, RoutedEventArgs e)
         {
-            OnExitApp();
+            ExitApp();
             Application.Current.Shutdown();
         }
 
@@ -71,12 +76,21 @@ namespace AspectFix
         {
             if (viewName == "Home")
             {
-                viewmodel.SelectedViewModel = new HomeViewModel();
+                Viewmodel.SelectedViewModel = new HomeViewModel();
             }
             else if (viewName == "Edit")
             {
-                viewmodel.SelectedViewModel = new EditViewModel();
+                Viewmodel.SelectedViewModel = new EditViewModel();
             }
+        }
+
+        // When the user drags a file into the main window
+        private void MainBorder_PreviewDragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop) == false) return;
+
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            string filename = System.IO.Path.GetFileName(files[0]);
         }
     }
 }

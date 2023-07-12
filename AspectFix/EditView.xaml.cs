@@ -13,7 +13,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace AspectFix
 {
@@ -42,7 +41,7 @@ namespace AspectFix
         public EditView()
         {
             InitializeComponent();
-            MainWindow.Instance.ExitApp += Cleanup;
+            MainWindow.Instance.OnExitApp += Cleanup;
             InitPreviews();
         }
 
@@ -75,16 +74,19 @@ namespace AspectFix
                     GC.Collect();
                 }
                 using (FileStream stream = File.OpenRead(newPreviewPath))
+                using (var memStream = new MemoryStream())
                 {
+                    stream.CopyTo(memStream);
+                    memStream.Seek(0, SeekOrigin.Begin);
                     _newPreview = new BitmapImage();
                     _newPreview.BeginInit();
                     _newPreview.CacheOption = BitmapCacheOption.OnLoad;
-                    _newPreview.UriSource = new Uri(newPreviewPath);
+                    _newPreview.StreamSource = memStream;
                     _newPreview.EndInit();
                 }
-                   
                 ImagePreviewNew.Source = _newPreview;
             }
+            else MessageBox.Show("Failed to generate preview image.");
         }
 
         private void PlusButton_Click(object sender, RoutedEventArgs e)
@@ -100,17 +102,18 @@ namespace AspectFix
         private void CropButton_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.Instance.ToggleOverlay();
-            FileProcessor.Crop(MainWindow.Instance.SelectedFile);
+            var path = FileProcessor.Crop(MainWindow.Instance.SelectedFile);
+            if (path == null) MessageBox.Show("Failed to crop video.");
             MainWindow.Instance.ToggleOverlay();
 
-            MainWindow.Instance.OnFileProcessed();
+            MainWindow.Instance.FileProcessed();
             MainWindow.Instance.ChangeView("Home");
         }
 
         private void Cleanup()
         {
-            _oldPreview.StreamSource?.Dispose();
-            _newPreview.StreamSource?.Dispose();
+            _oldPreview?.StreamSource?.Dispose();
+            _newPreview?.StreamSource?.Dispose();
             _oldPreview = null;
             _newPreview = null;
             GC.Collect();

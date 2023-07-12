@@ -60,7 +60,7 @@
 		            VerticalAlignment="Top">
 			<Components:RoundedTitleBox Title="After:"
 			                            Margin="0 0 0 4"/>
-			<Image x:Name="ImagePreviewNew"
+            <Image x:Name="ImagePreviewNew"
 			       Stretch="Uniform"
 			       MaxHeight="167.25"/>
 		</StackPanel>
