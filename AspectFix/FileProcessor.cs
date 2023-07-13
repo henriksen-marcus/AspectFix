@@ -61,23 +61,15 @@ namespace AspectFix
             return (0, 0);
         }
 
-        public static (int, int) GetCroppedVideoDimensions(VideoFile video, int iterations)
-        {
-            // Cropping from 16:9 to 9:16
-            int newWidth = video.Height * 9 / 16;
-
-            return (newWidth, video.Height);
-        }
-
         public static string Crop(VideoFile video)
         {
-            (int width, int height) = GetCroppedVideoDimensions(video, 1);
+            (int width, int height) = video.GetCroppedDimensions(1);
 
             string newFileName = $"{video.FileName}.cropped{video.Extension}";
             string newFilePath = Path.Combine(Path.GetDirectoryName(video.Path), newFileName);
 
             // Saves to the same location as original file
-            string arguments = $"-i \"{video.Path}\" -filter:v \"crop={width}:{height}\" \"{newFilePath}\"";
+            string arguments = $"-y -i \"{video.Path}\" -filter:v \"crop={width}:{height}\" -c:a copy \"{newFilePath}\"";
             MessageBox.Show(arguments);
             var success = Runffmpeg(arguments);
             Console.WriteLine("Success: " + success);
@@ -87,9 +79,12 @@ namespace AspectFix
 
         public static string GetCroppedPreviewImage(VideoFile video, int iterations)
         {
-            (int width, int height) = GetCroppedVideoDimensions(video, iterations);
+            (int width, int height) = video.GetCroppedDimensions(iterations);
+            Console.WriteLine($"Cropped dimensions: {width}x{height}");
+            Console.WriteLine($"Iterations: {iterations}");
+            Console.WriteLine($"Original dimensions: {video.Width}x{video.Height}");
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_new.jpg");
-            string arguments = $"-i \"{video.Path}\" -ss 00:00:00 -frames:v 1 -vf \"crop={width}:{height}\" \"{savePath}\"";
+            string arguments = $"-y -i \"{video.Path}\" -ss 00:00:03 -frames:v 1 -vf \"crop={width}:{height}\" \"{savePath}\"";
 
             Runffmpeg(arguments);
 
@@ -99,7 +94,7 @@ namespace AspectFix
         public static string GetPreviewImage(VideoFile video)
         {
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old.jpg");
-            string arguments = $"-i \"{video.Path}\" -ss 00:00:00 -vframes 1 \"{savePath}\"";
+            string arguments = $"-y -i \"{video.Path}\" -ss 00:00:03 -vframes 1 \"{savePath}\"";
 
             Runffmpeg(arguments);
 
@@ -119,11 +114,12 @@ namespace AspectFix
             Process process = new Process();
             process.StartInfo = startInfo;
             int exitCode;
+            string output = "";
 
             try
             {
                 process.Start();
-                //string output = process.StandardOutput.ReadToEnd();
+                //output = process.StandardOutput.ReadToEnd();
                 process.WaitForExit();
             }
             catch (Exception ex)
@@ -137,6 +133,8 @@ namespace AspectFix
                 // Clean up the process
                 process.Close();
             }
+
+            //Console.WriteLine(output);
 
             return exitCode == 0;
         }

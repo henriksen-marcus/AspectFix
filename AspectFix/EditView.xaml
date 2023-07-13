@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:AspectFix"
 			 xmlns:Components="clr-namespace:AspectFix.Components"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="400">
+             d:DesignHeight="575" d:DesignWidth="400">
 	<UserControl.Resources>
 		<Style x:Key="DisabledButtonStyle" TargetType="Button">
 			<Setter Property="Cursor" Value="Hand"/>
@@ -48,7 +48,7 @@
 			Grid.Row="0" 
 			Grid.Column="1"
 			VerticalAlignment="Top">
-			<Components:RoundedTitleBox Title="Before:"
+			<Components:RoundedTitleBox Title="Original:"
 			                            Margin="0 0 0 4"/>
 	            <Image x:Name="ImagePreviewOld"
 	                   Stretch="Uniform"
@@ -58,7 +58,7 @@
 		<StackPanel Grid.Row="1"
 		            Grid.Column="1"
 		            VerticalAlignment="Top">
-			<Components:RoundedTitleBox Title="After:"
+			<Components:RoundedTitleBox Title="Cropped:"
 			                            Margin="0 0 0 4"/>
             <Image x:Name="ImagePreviewNew"
 			       Stretch="Uniform"
@@ -117,7 +117,27 @@
 	        </Button>
         </StackPanel>
 
-		<Button Width="100" 
+	    <Button Width="30" 
+	            Height="30"
+	            Click="BackButton_Click"
+	            x:Name="BackButton"
+	            Margin="0 0 0 28"
+	            Grid.Column="0"
+	            Grid.Row="3">
+		    <Button.Template>
+			    <ControlTemplate TargetType="Button">
+				    <Border Background="#635e82" CornerRadius="10">
+					    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				    </Border>
+			    </ControlTemplate>
+		    </Button.Template>
+		    <Image Source="Images/left-arrow.png"
+		           Stretch="Uniform"
+		           Width="14"
+		           Margin="0 0 1.5 0"/>
+	    </Button>
+
+        <Button Width="100" 
 		        Height="30"
 		        Grid.Column="1"
 		        Grid.Row="3"

@@ -64,15 +64,19 @@ namespace AspectFix
         // Generates the cropped (new) preview image
         private void UpdatePreview()
         {
-            string newPreviewPath = FileProcessor.GetCroppedPreviewImage(MainWindow.Instance.SelectedFile, 1);
+            // Delete previous preview before making a new one else we
+            // will get an error because the previous file is in use
+            if (_newPreview != null)
+            {
+                _newPreview.StreamSource?.Dispose();
+                _newPreview = null;
+                GC.Collect();
+                File.Delete("preview_new.jpg");
+            }
+
+            string newPreviewPath = FileProcessor.GetCroppedPreviewImage(MainWindow.Instance.SelectedFile, IterationCount);
             if (newPreviewPath != null)
             {
-                if (_newPreview != null)
-                {
-                    _newPreview.StreamSource?.Dispose();
-                    _newPreview = null;
-                    GC.Collect();
-                }
                 using (FileStream stream = File.OpenRead(newPreviewPath))
                 using (var memStream = new MemoryStream())
                 {
@@ -91,12 +95,16 @@ namespace AspectFix
 
         private void PlusButton_Click(object sender, RoutedEventArgs e)
         {
+            int oldIterationCount = IterationCount;
             IterationCount++;
+            if (oldIterationCount != IterationCount) UpdatePreview();
         }
 
         private void MinusButton_Click(object sender, RoutedEventArgs e)
         {
+            int oldIterationCount = IterationCount;
             IterationCount--;
+            if (oldIterationCount != IterationCount) UpdatePreview();
         }
         
         private void CropButton_Click(object sender, RoutedEventArgs e)
@@ -120,6 +128,11 @@ namespace AspectFix
 
             File.Delete("preview_new.jpg");
             File.Delete("preview_old.jpg");
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

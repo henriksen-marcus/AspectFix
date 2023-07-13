@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AspectFix"
         mc:Ignorable="d"
         Title="MainWindow" 
-        Height="700" Width="450"
+        Height="650" Width="450"
         WindowStyle="None"
         ResizeMode="NoResize"
         Background="Transparent"
