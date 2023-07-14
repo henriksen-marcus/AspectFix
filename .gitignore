@@ -3,3 +3,5 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+AspectFix/AspectFix.csproj.DotSettings.user
+.idea

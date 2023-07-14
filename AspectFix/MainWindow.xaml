@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AspectFix"
+        xmlns:components="clr-namespace:AspectFix.Components"
         mc:Ignorable="d"
         Title="MainWindow" 
         Height="650" Width="450"
@@ -26,7 +27,7 @@
         PreviewDragEnter="MainBorder_PreviewDragEnter">
 
         <Grid>
-	        <!--Overlay UI-->
+	        <!--~1~Overlay UI@1@
             <Border x:Name="OverlayUI" 
                     Background="#635e82"
                     CornerRadius="10"
@@ -46,9 +47,9 @@
                                    Margin="10"
                                    Panel.ZIndex="999"/>
                 </StackPanel>
-            </Border>
+            </Border>-->
 
-            <Border x:Name="DarkenOverlay" 
+            <!--<Border x:Name="DarkenOverlay" 
                         CornerRadius="20"
                         Background="Black"
                         Opacity="0.6"
@@ -57,7 +58,7 @@
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Visibility="Collapsed">
-            </Border>
+            </Border>-->
 
             <!--Main window grid-->
             <Grid ShowGridLines="False" ClipToBounds="True">
@@ -132,6 +133,7 @@
                                 x:Name="MyContentControl"/>
             </Grid>
             <!--End of main window grid-->
+	        <local:LoadingOverlay x:Name="LoadingOverlay" Visibility="Collapsed"/>
         </Grid>
         <!--End of overlay grid-->
 

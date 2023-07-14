@@ -4,9 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AspectFix"
-			 xmlns:Components="clr-namespace:AspectFix.Components"
+			 xmlns:components="clr-namespace:AspectFix.Components"
              mc:Ignorable="d" 
-             d:DesignHeight="575" d:DesignWidth="400">
+             d:DesignHeight="575" d:DesignWidth="400"
+             Background="Transparent">
 	<UserControl.Resources>
 	</UserControl.Resources>
     <Grid ShowGridLines="False">
@@ -26,7 +27,7 @@
 			Grid.Row="0" 
 			Grid.Column="1"
 			VerticalAlignment="Top">
-			<Components:RoundedTitleBox Title="Original:"
+			<components:RoundedTitleBox Title="Original:"
 			                            Margin="0 0 0 4"/>
 	            <Image x:Name="ImagePreviewOld"
 	                   Stretch="Uniform"
@@ -36,7 +37,7 @@
 		<StackPanel Grid.Row="1"
 		            Grid.Column="1"
 		            VerticalAlignment="Top">
-			<Components:RoundedTitleBox Title="Cropped:"
+			<components:RoundedTitleBox Title="Cropped:"
 			                            Margin="0 0 0 4"/>
             <Image x:Name="ImagePreviewNew"
 			       Stretch="Uniform"
@@ -115,7 +116,7 @@
 		           Margin="0 0 1.5 0"/>
 	    </Button>
 
-        <Components:RoundedButton Width="100" 
+        <components:RoundedButton Width="100" 
 								  Height="30"
 								  Grid.Column="1"
 								  Grid.Row="3"

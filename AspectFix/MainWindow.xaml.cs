@@ -62,14 +62,15 @@ namespace AspectFix
 
         private void CloseButton_OnClick(object sender, RoutedEventArgs e)
         {
+            LoadingOverlay.Visibility = Visibility.Visible;
+            return;
             ExitApp();
             Application.Current.Shutdown();
         }
 
         public void ToggleOverlay()
         {
-            DarkenOverlay.Visibility = DarkenOverlay.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
-            OverlayUI.Visibility = OverlayUI.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+            LoadingOverlay.Visibility = LoadingOverlay.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public void ChangeView(string viewName)
