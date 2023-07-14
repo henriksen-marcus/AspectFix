@@ -4,29 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AspectFix"
+             xmlns:Components="clr-namespace:AspectFix.Components"
              mc:Ignorable="d" 
              d:DesignHeight="575" d:DesignWidth="400"
              Background="Transparent">
     <UserControl.Resources>
-        <Style x:Key="DisabledButtonStyle" TargetType="Button">
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="ButtonBorder"
-						        Background="#635e82"
-						        CornerRadius="10">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.5" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </UserControl.Resources>
 	<Grid>
         <Grid.ColumnDefinitions>
@@ -120,63 +102,15 @@
         </StackPanel>
 
         <!-- Continue button -->
-        <!--<Button Width="100" 
-                Height="30"
-                Grid.Column="1"
-                Grid.Row="3"
-                Click="ContinueButton_Click"
-                x:Name="ContinueButton"
-                IsEnabled="True"
-                Style="{StaticResource DisabledButtonStyle}">
-            <TextBlock Text="Continue" 
-		               Foreground="White"
-		               FontSize="16"/>
-        </Button>-->
-
-        <!--<Border Grid.Row="3"
-                Grid.ColumnSpan="3"
-                CornerRadius="0 0 10 10"
-                Background="#635e82">
-        </Border>-->
-
-        <Button x:Name="ContinueButton"
-				Width="100"
-                Height="30"
-				Content="Continue"
-                Background="#2e2e2e"
-                Foreground="White"
-                FontSize="18"
-                Click="ContinueButton_Click"
-                Grid.Row="3"
-                Grid.Column="1"
-                IsEnabled="False"
-                Style="{StaticResource DisabledButtonStyle}"
-				VerticalAlignment="Bottom"
-				Margin="0 0 0 28"/>
-	        <!--Full width button-->
-        <!--<Button 
-	        x:Name="ContinueButton" 
-	        Background="#2e2e2e" 
-	        Foreground="White" 
-	        Grid.Row="3" 
-	        Grid.ColumnSpan="3" 
-	        Click="ContinueButton_Click"
-	        Style="{StaticResource DisabledButtonStyle}">
-	        <Button.Template>
-		        <ControlTemplate TargetType="{x:Type Button}">
-			        <Grid Background="{TemplateBinding Background}">
-				        <Border CornerRadius="0 0 10 10">
-					        <ContentPresenter Margin="6,3,6,3" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				        </Border>
-			        </Grid>
-			        <ControlTemplate.Triggers>
-				        <Trigger Property="IsMouseOver" Value="True">
-					        <Setter Property="Background" Value="#555555" />
-				        </Trigger>
-			        </ControlTemplate.Triggers>
-		        </ControlTemplate>
-	        </Button.Template>
-	        <TextBlock Text="Continue" FontSize="18"/>
-        </Button>-->
+        <Components:RoundedButton x:Name="ContinueButton"
+                                  Width="100"
+                                  Height="30"
+				                  Text="Continue"
+                                  Click="ContinueButton_Click"
+                                  Grid.Row="3"
+                                  Grid.Column="1"
+                                  IsEnabled="False"
+				                  VerticalAlignment="Bottom"
+				                  Margin="0 0 0 28"/>
     </Grid>
 </UserControl>

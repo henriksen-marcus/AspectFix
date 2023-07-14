@@ -73,6 +73,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Components\RoundedButton.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Components\RoundedTitleBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -94,6 +98,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BaseViewModel.cs" />
+    <Compile Include="Components\RoundedButton.xaml.cs">
+      <DependentUpon>RoundedButton.xaml</DependentUpon>
+    </Compile>
     <Compile Include="VideoFile.cs" />
     <Compile Include="Components\RoundedTitleBox.xaml.cs">
       <DependentUpon>RoundedTitleBox.xaml</DependentUpon>

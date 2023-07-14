@@ -8,28 +8,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="575" d:DesignWidth="400">
 	<UserControl.Resources>
-		<Style x:Key="DisabledButtonStyle" TargetType="Button">
-			<Setter Property="Cursor" Value="Hand"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="Button">
-						<Border x:Name="ButtonBorder"
-						        Background="#635e82"
-						        CornerRadius="10">
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-						</Border>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsEnabled" Value="False">
-								<Setter TargetName="ButtonBorder" Property="Opacity" Value="0.5" />
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-
-
-
 	</UserControl.Resources>
     <Grid ShowGridLines="False">
 		<Grid.ColumnDefinitions>
@@ -41,7 +19,7 @@
 			<RowDefinition Height="0.38*"/>
 			<RowDefinition Height="0.38*"/>
 			<RowDefinition Height="0.14*"/>
-			<RowDefinition Height="0.1*"/>
+			<RowDefinition Height="0.105*"/>
 		</Grid.RowDefinitions>
 
 		<StackPanel 
@@ -137,24 +115,15 @@
 		           Margin="0 0 1.5 0"/>
 	    </Button>
 
-        <Button Width="100" 
-		        Height="30"
-		        Grid.Column="1"
-		        Grid.Row="3"
-		        Click="CropButton_Click"
-		        x:Name="CropButton"
-		        VerticalAlignment="Bottom"
-		        Margin="0 0 0 28">
-			<Button.Template>
-				<ControlTemplate TargetType="Button">
-					<Border Background="#635e82" CornerRadius="10">
-						<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-					</Border>
-				</ControlTemplate>
-			</Button.Template>
-			<TextBlock Text="Crop" 
-			           Foreground="White"
-			           FontSize="16"/>
-		</Button>
-	</Grid>
+        <Components:RoundedButton Width="100" 
+								  Height="30"
+								  Grid.Column="1"
+								  Grid.Row="3"
+								  Click="CropButton_Click"
+								  x:Name="CropButton"
+								  VerticalAlignment="Bottom"
+								  Margin="0 0 0 28"
+                                  Text="Crop"
+                                  FontSize="16"/>
+    </Grid>
 </UserControl>
