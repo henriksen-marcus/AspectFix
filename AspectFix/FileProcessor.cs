@@ -6,42 +6,25 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Windows;
+using System.Drawing;
+using System.Globalization;
 
 namespace AspectFix
 {
     public class FileProcessor
     {
+        private enum ProgramType
+        {
+            FFMPEG,
+            FFPROBE
+        }
+
         private static string ffmpegPath = "ffmpeg.exe";
         private static string ffprobePath = "ffprobe.exe";
 
         public static (int, int) GetVideoDimensions(string videoPath)
         {
-            // Create the process start info
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.FileName = ffprobePath;
-            startInfo.Arguments = $"-v error -select_streams v -show_entries stream=width,height -of csv=p=0:s=x \"{videoPath}\"";
-            startInfo.RedirectStandardOutput = true;
-            startInfo.UseShellExecute = false;
-            startInfo.CreateNoWindow = true;
-
-            // Start the process
-            Process process = new Process();
-            process.StartInfo = startInfo;
-            process.Start();
-
-            string output = "";
-            while (!process.HasExited)
-            {
-                output += process.StandardOutput.ReadToEnd();
-            }
-            // Read the output
-            //string output = process.StandardOutput.ReadToEnd();
-
-            // Wait for the process to exit
-            process.WaitForExit();
-
-            // Clean up the process
-            process.Close();
+            var output = Runffprobe($"-v error -select_streams v -show_entries stream=width,height -of csv=p=0:s=x \"{videoPath}\"");
 
             // Parse the output to retrieve the width and height values
             string[] dimensions = output.Trim().Split('x');
@@ -54,11 +37,28 @@ namespace AspectFix
             }
             catch (Exception e)
             {
-                MessageBox.Show("Error:GetVideoDimensions: " + e.Message);
-                MessageBox.Show(output);
+                MessageBox.Show(e.Message, "GetVideoDimensions error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
             return (0, 0);
+        }
+
+        public static double GetVideoLength(string videoPath)
+        {
+            var output = Runffprobe($"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{videoPath}\"");
+            double length = 0;
+
+            try
+            {
+                //double.TryParse(output, out length);
+                length = double.Parse(output, System.Globalization.CultureInfo.InvariantCulture);
+            }
+            catch (Exception e)
+            {
+                MainWindow.Instance.ErrorMessage(e.Message);
+            }
+
+            return length;
         }
 
         public static string Crop(VideoFile video)
@@ -70,7 +70,6 @@ namespace AspectFix
 
             // Saves to the same location as original file
             string arguments = $"-y -i \"{video.Path}\" -filter:v \"crop={width}:{height}\" -c:a copy \"{newFilePath}\"";
-            MessageBox.Show(arguments);
             var success = Runffmpeg(arguments);
             Console.WriteLine("Success: " + success);
 
@@ -80,25 +79,88 @@ namespace AspectFix
         public static string GetCroppedPreviewImage(VideoFile video, int iterations)
         {
             (int width, int height) = video.GetCroppedDimensions(iterations);
-            Console.WriteLine($"Cropped dimensions: {width}x{height}");
-            Console.WriteLine($"Iterations: {iterations}");
-            Console.WriteLine($"Original dimensions: {video.Width}x{video.Height}");
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_new.jpg");
-            string arguments = $"-y -i \"{video.Path}\" -ss 00:00:03 -frames:v 1 -vf \"crop={width}:{height}\" \"{savePath}\"";
 
-            Runffmpeg(arguments);
+            // We don't want a black preview image, so we try 3 times to get a valid one
+            for (int i = 0; i < 3; i++)
+            {
+                string arguments = $"-y -i \"{video.Path}\" -ss {Lerp(0.1, video.Length, (double)i / 3.0).ToString(CultureInfo.InvariantCulture)} -frames:v 1 -vf \"crop={width}:{height}\" \"{savePath}\"";
+
+                Runffmpeg(arguments);
+
+                if (File.Exists(savePath))
+                {
+                    if (IsImageNotBlack(savePath)) return savePath;
+                    File.Delete(savePath);
+                }
+            }
 
             return File.Exists(savePath) ? savePath : null;
         }
 
         public static string GetPreviewImage(VideoFile video)
         {
+            (int width, int height) = video.GetDimensions();
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old.jpg");
-            string arguments = $"-y -i \"{video.Path}\" -ss 00:00:03 -vframes 1 \"{savePath}\"";
 
-            Runffmpeg(arguments);
+            // We don't want a black preview image, so we try 3 times to get a valid one
+            for (int i = 0; i < 3; i++)
+            {
+                string arguments = $"-y -i \"{video.Path}\" -ss {(int)Lerp(0.1, video.Length, (double)i / 3.0)/*.ToString(CultureInfo.InvariantCulture)*/} -frames:v 1 -vf \"crop={width}:{height}\" \"{savePath}\"";
+
+                Runffmpeg(arguments);
+
+                if (File.Exists(savePath))
+                {
+                    if (IsImageNotBlack(savePath)) return savePath;
+                    File.Delete(savePath);
+                }
+            }
 
             return File.Exists(savePath) ? savePath : null;
+        }
+
+        private static bool IsImageNotBlack(string imagePath)
+        {
+            // Check if image is black at center
+            Bitmap image = new Bitmap(imagePath);
+            var brightness = image.GetPixel(image.Size.Width / 2, image.Size.Height / 2).GetBrightness();
+            image.Dispose();
+            return (brightness > 0.2);
+        }
+
+        private static string Runffprobe(string arguments)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.FileName = ffprobePath;
+            startInfo.Arguments = arguments;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.UseShellExecute = false;
+            startInfo.CreateNoWindow = true;
+
+            Process process = new Process();
+            process.StartInfo = startInfo;
+            //int exitCode;
+            string output = "";
+
+            try
+            {
+                process.Start();
+                output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
+                //exitCode = process.ExitCode;
+                process.Close();
+            }
+
+            return output;
         }
 
         private static bool Runffmpeg(string arguments)
@@ -106,35 +168,40 @@ namespace AspectFix
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = ffmpegPath;
             startInfo.Arguments = arguments;
-            startInfo.RedirectStandardOutput = false;
+            startInfo.RedirectStandardOutput = true;
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;
 
             // Start the process
             Process process = new Process();
             process.StartInfo = startInfo;
-            int exitCode;
+            int exitCode = 1;
             string output = "";
 
             try
             {
                 process.Start();
-                //output = process.StandardOutput.ReadToEnd();
+                output = process.StandardOutput.ReadToEnd();
                 process.WaitForExit();
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                // Handle the exception
-                MessageBox.Show("Error: " + ex.Message);
+                MainWindow.Instance.ErrorMessage(e.Message);
             }
             finally
             {
-                exitCode = process.ExitCode;
+                try
+                { 
+                    exitCode = process.ExitCode;
+                }
+                catch {}
+                
                 // Clean up the process
                 process.Close();
             }
 
-            //Console.WriteLine(output);
+            Console.WriteLine(output);
+            Console.WriteLine("Exit code: " + exitCode);
 
             return exitCode == 0;
         }
@@ -168,10 +235,9 @@ namespace AspectFix
             return supportedVideoTypes.Contains(extension, StringComparer.OrdinalIgnoreCase);
         }
 
-        public static bool IsVideoSquare(string videoPath)
+        public static double Lerp(double a, double b, double t)
         {
-            var video = new VideoFile(videoPath);
-            return video.Width == video.Height;
+            return a * (1 - t) + b * t;
         }
     }
 }

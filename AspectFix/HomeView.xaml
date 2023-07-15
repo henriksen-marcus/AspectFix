@@ -6,15 +6,15 @@
              xmlns:local="clr-namespace:AspectFix"
              xmlns:components="clr-namespace:AspectFix.Components"
              mc:Ignorable="d" 
-             d:DesignHeight="575" d:DesignWidth="400"
+             d:DesignHeight="575" d:DesignWidth="420"
              Background="Transparent">
     <UserControl.Resources>
     </UserControl.Resources>
 	<Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.2*"/>
+            <ColumnDefinition Width="0.15*"/>
             <ColumnDefinition Width="0.6*"/>
-            <ColumnDefinition Width="0.2*"/>
+            <ColumnDefinition Width="0.15*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="0.28*"/>
@@ -24,14 +24,15 @@
         </Grid.RowDefinitions>
 
         <!-- Drag drop box -->
-        <Border Background="#635e82" 
-			            CornerRadius="10"
-			            BorderThickness="2"
-			            AllowDrop="True"
-			            Grid.Row="0" 
-			            Grid.Column="1"
-			            Margin="0 15 0 0"
-			            Drop="Border_Drop">
+        <Border x:Name="DropBorder"
+		        Background="#635e82" 
+	            CornerRadius="10"
+	            BorderThickness="2"
+	            AllowDrop="True"
+	            Grid.Row="0" 
+	            Grid.Column="1"
+	            Margin="0 15 0 0"
+	            Drop="Border_Drop">
             <Border.BorderBrush>
                 <DrawingBrush Viewport="0,0,8,8" ViewportUnits="Absolute" TileMode="FlipXY">
                     <DrawingBrush.Drawing>
@@ -62,14 +63,13 @@
             <!-- File name box -->
             <Border Background="#635e82"
 	                CornerRadius="10"
-	                HorizontalAlignment="Center"
 	                VerticalAlignment="Center">
                 <TextBlock x:Name="FileNameTextBlock" 
                            Text="No file selected"
 		                   FontSize="16" 
 		                   HorizontalAlignment="Center" 
 		                   Foreground="White"
-		                   Margin="16 3 16 3"/>
+		                   Margin="14 3 14 3"/>
             </Border>
             <!-- X Button -->
             <Button x:Name="RemoveFileButton"
@@ -100,6 +100,13 @@
 				       Stretch="Uniform"/>
             </Button>
         </StackPanel>
+
+        <components:RoundedImageButton
+            Grid.Row="2"
+            Grid.Column="1"
+            Width="30"
+            Height="30"
+            ImageSource="Images/plus.png"/>
 
         <!-- Continue button -->
         <components:RoundedButton x:Name="ContinueButton"

@@ -48,6 +48,12 @@ namespace AspectFix
         public void InitPreviews()
         {
             string oldPreviewPath = FileProcessor.GetPreviewImage(MainWindow.Instance.SelectedFile);
+            if (oldPreviewPath == null)
+            {
+                MainWindow.Instance.ErrorMessage("Failed to generate preview images.");
+                return;
+            }
+
             using (FileStream stream = File.OpenRead(oldPreviewPath))
             {
                 _oldPreview = new BitmapImage();
@@ -71,7 +77,7 @@ namespace AspectFix
                 _newPreview.StreamSource?.Dispose();
                 _newPreview = null;
                 GC.Collect();
-                File.Delete("preview_new.jpg");
+                //File.Delete("preview_new.jpg");
             }
 
             string newPreviewPath = FileProcessor.GetCroppedPreviewImage(MainWindow.Instance.SelectedFile, IterationCount);
@@ -90,7 +96,7 @@ namespace AspectFix
                 }
                 ImagePreviewNew.Source = _newPreview;
             }
-            else MessageBox.Show("Failed to generate preview image.");
+            else MainWindow.Instance.ErrorMessage("Failed to generate preview image.");
         }
 
         private void PlusButton_Click(object sender, RoutedEventArgs e)
@@ -107,16 +113,19 @@ namespace AspectFix
             if (oldIterationCount != IterationCount) UpdatePreview();
         }
         
-        private void CropButton_Click(object sender, RoutedEventArgs e)
+        private async void CropButton_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.Instance.ToggleOverlay();
-            var path = FileProcessor.Crop(MainWindow.Instance.SelectedFile);
-            if (path == null) MessageBox.Show("Failed to crop video.");
-            MainWindow.Instance.ToggleOverlay();
 
+            Task<string> task = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile));
+            string path = await task;
+            if (path == null) MainWindow.Instance.ErrorMessage("Failed to crop video.");
+
+            MainWindow.Instance.ToggleOverlay();
             MainWindow.Instance.FileProcessed();
             MainWindow.Instance.ChangeView("Home");
         }
+
 
         private void Cleanup()
         {
@@ -132,7 +141,8 @@ namespace AspectFix
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-
+            Cleanup();
+            MainWindow.Instance.ChangeView("Home");
         }
     }
 }

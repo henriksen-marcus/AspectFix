@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:AspectFix"
 			 xmlns:components="clr-namespace:AspectFix.Components"
              mc:Ignorable="d" 
-             d:DesignHeight="575" d:DesignWidth="400"
+             d:DesignHeight="575" d:DesignWidth="420"
              Background="Transparent">
 	<UserControl.Resources>
 	</UserControl.Resources>
@@ -60,40 +60,22 @@
                            FontSize="16"
                            Margin="10 0 10 0"/>
             </Border>
-			<!--Plus button-->
-	        <Button Width="30" 
-	                Height="30"
-	                Click="MinusButton_Click"
-	                x:Name="MinusButton"
-	                Margin="4 0 2 0">
-		        <Button.Template>
-			        <ControlTemplate TargetType="Button">
-				        <Border Background="#635e82" CornerRadius="10">
-					        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				        </Border>
-			        </ControlTemplate>
-		        </Button.Template>
-		        <Image Source="Images/minus.png"
-		               Stretch="Uniform"
-		               Width="14"/>
-	        </Button>
-			<!--Minus button-->
-	        <Button Width="30" 
-	                Height="30"
-	                Click="PlusButton_Click"
-	                x:Name="PlusButton"
-	                Margin="2 0 2 0">
-		        <Button.Template>
-			        <ControlTemplate TargetType="Button">
-				        <Border Background="#635e82" CornerRadius="10">
-					        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				        </Border>
-			        </ControlTemplate>
-		        </Button.Template>
-		        <Image Source="Images/plus.png"
-		               Stretch="Uniform"
-		               Width="14"/>
-	        </Button>
+            <!--Minus button-->
+            <components:RoundedImageButton
+                Width="30"
+                Height="30"
+                Click="MinusButton_Click"
+                x:Name="MinusButton"
+                Margin="4 0 2 0"
+                ImageSource="Images/minus.png"/>
+            <!--Plus button-->
+            <components:RoundedImageButton
+                Width="30"
+                Height="30"
+                Click="PlusButton_Click"
+                x:Name="Plus"
+                Margin="2 0 2 0"
+                ImageSource="Images/plus.png"/>
         </StackPanel>
 
 	    <Button Width="30" 

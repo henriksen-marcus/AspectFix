@@ -55,6 +55,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -67,6 +68,9 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WpfAnimatedGif, Version=2.0.0.0, Culture=neutral, PublicKeyToken=9e7cd3b544a090dc, processorArchitecture=MSIL">
+      <HintPath>..\packages\WpfAnimatedGif.2.0.2\lib\net40\WpfAnimatedGif.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -75,6 +79,10 @@
     </ApplicationDefinition>
     <Page Include="Components\LoadingOverlay.xaml" />
     <Page Include="Components\RoundedButton.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Components\RoundedImageButton.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -104,6 +112,9 @@
     </Compile>
     <Compile Include="Components\RoundedButton.xaml.cs">
       <DependentUpon>RoundedButton.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Components\RoundedImageButton.xaml.cs">
+      <DependentUpon>RoundedImageButton.xaml</DependentUpon>
     </Compile>
     <Compile Include="VideoFile.cs" />
     <Compile Include="Components\RoundedTitleBox.xaml.cs">
@@ -142,6 +153,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -187,7 +199,9 @@
     <Resource Include="Images\left-arrow.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Images\loading.gif" />
+    <Resource Include="Images\loading.gif">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

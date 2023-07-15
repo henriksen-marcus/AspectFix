@@ -27,6 +27,20 @@ namespace AspectFix
             InitializeComponent();
             MainWindow.Instance.OnFileProcessed += ResetUI;
             MainWindow.Instance.OnToggleDragOverlay += ToggleDragOverlay;
+            MainWindow.Instance.OnFileEnteredWindow += CheckHeldFile;
+        }
+
+        private void CheckHeldFile(string path)
+        {
+            if (CheckFile(path))
+                DropBorder.AllowDrop = true;
+            else
+                DropBorder.AllowDrop = false;
+        }
+
+        private bool CheckFile(string path)
+        {
+            return (File.Exists(path) && FileProcessor.IsVideoFile(path));
         }
 
         private void ToggleDragOverlay(bool isValidFile)
@@ -45,8 +59,12 @@ namespace AspectFix
             MainWindow.Instance.SetSelectedFile(files[0]);
             RemoveFileButton.Visibility = Visibility.Visible;
 
-            if (File.Exists(files[0]) && FileProcessor.IsVideoFile(files[0]) && !FileProcessor.IsVideoSquare(files[0]))
-                ContinueButton.IsEnabled = true;
+            if (CheckFile(files[0])) ContinueButton.IsEnabled = true;
+        }
+
+        public void ToggleDrop()
+        {
+            DropBorder.AllowDrop = false;
         }
 
         // Enable this button when we have a valid file in our drag box,
@@ -54,16 +72,6 @@ namespace AspectFix
         private void ContinueButton_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.Instance.ChangeView("Edit");
-        }
-
-        private void Border_DragEnter(object sender, DragEventArgs e)
-        {
-            MessageBox.Show("DragEnter");
-        }
-
-        private void Border_DragOver(object sender, DragEventArgs e)
-        {
-
         }
 
         private void ResetUI()

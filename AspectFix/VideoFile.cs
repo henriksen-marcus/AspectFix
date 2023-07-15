@@ -21,8 +21,9 @@ namespace AspectFix
         public Orientation CroppedOrientation => (CroppedWidth > CroppedHeight) ? Orientation.Landscape : Orientation.Portrait;
         public int Width { get; private set; }
         public int Height { get; private set; }
-        public int CroppedWidth { get; set; }
-        public int CroppedHeight { get; set; }
+        public int CroppedWidth { get; private set; }
+        public int CroppedHeight { get; private set; }
+        public double Length { get; private set; }
         public float AspectRatio { get; private set; }
         public float CroppedAspectRatio
         {
@@ -35,6 +36,7 @@ namespace AspectFix
             FileName = System.IO.Path.GetFileNameWithoutExtension(path);
             Extension = System.IO.Path.GetExtension(path);
             (Width, Height) = FileProcessor.GetVideoDimensions(path);
+            Length = FileProcessor.GetVideoLength(path);
             CroppedWidth = Width;
             CroppedHeight = Height;
             AspectRatio = (float)Math.Max(Width, Height) / (float)Math.Min(Width, Height);

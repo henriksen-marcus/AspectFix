@@ -7,7 +7,7 @@
         xmlns:components="clr-namespace:AspectFix.Components"
         mc:Ignorable="d"
         Title="MainWindow" 
-        Height="650" Width="450"
+        Height="650" Width="420"
         WindowStyle="None"
         ResizeMode="NoResize"
         Background="Transparent"
@@ -19,48 +19,18 @@
 			<Setter Property="Cursor" Value="Hand"/>
 		</Style>
 	</Window.Resources>
-    <Border
+    <Border x:Name="MainBorder"
         Background="#272537" 
         CornerRadius="20"
         BorderBrush="#635e82"
         BorderThickness="2"
-        PreviewDragEnter="MainBorder_PreviewDragEnter">
+        PreviewDragEnter="MainBorder_PreviewDragEnter"
+        PreviewDragOver="MainBorder_PreviewDragOver"
+        PreviewDragLeave="MainBorder_PreviewDragLeave"
+        AllowDrop="True">
 
         <Grid>
-	        <!--~1~Overlay UI@1@
-            <Border x:Name="OverlayUI" 
-                    Background="#635e82"
-                    CornerRadius="10"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Margin="0 10 0 0"
-                    Panel.ZIndex="100"
-                    Visibility="Collapsed">
-                <StackPanel Orientation="Vertical"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Margin="10">
-                    <TextBlock Text="Cropping video.." 
-                                   FontSize="20" 
-                                   HorizontalAlignment="Center" 
-                                   Foreground="White"
-                                   Margin="10"
-                                   Panel.ZIndex="999"/>
-                </StackPanel>
-            </Border>-->
-
-            <!--<Border x:Name="DarkenOverlay" 
-                        CornerRadius="20"
-                        Background="Black"
-                        Opacity="0.6"
-                        Panel.ZIndex="10"
-                        Margin="0"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        Visibility="Collapsed">
-            </Border>-->
-
-            <!--Main window grid-->
+	        <!--Main window grid-->
             <Grid ShowGridLines="False" ClipToBounds="True">
                 <Grid.RowDefinitions>
                     <!--Declare a new row-->

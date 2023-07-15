@@ -35,6 +35,9 @@ namespace AspectFix
 
         public delegate void ToggleDragOverlayEventHandler(bool isValidFile);
         public event ToggleDragOverlayEventHandler OnToggleDragOverlay;
+        
+        public delegate void FileEnteredWindowEventHandler(string path);
+        public event FileEnteredWindowEventHandler OnFileEnteredWindow;
 
         public MainWindow()
         {
@@ -62,8 +65,6 @@ namespace AspectFix
 
         private void CloseButton_OnClick(object sender, RoutedEventArgs e)
         {
-            LoadingOverlay.Visibility = Visibility.Visible;
-            return;
             ExitApp();
             Application.Current.Shutdown();
         }
@@ -71,18 +72,15 @@ namespace AspectFix
         public void ToggleOverlay()
         {
             LoadingOverlay.Visibility = LoadingOverlay.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+            //MainBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#656500"));
         }
 
         public void ChangeView(string viewName)
         {
             if (viewName == "Home")
-            {
                 Viewmodel.SelectedViewModel = new HomeViewModel();
-            }
             else if (viewName == "Edit")
-            {
                 Viewmodel.SelectedViewModel = new EditViewModel();
-            }
         }
 
         // When the user drags a file into the main window
@@ -91,7 +89,26 @@ namespace AspectFix
             if (e.Data.GetDataPresent(DataFormats.FileDrop) == false) return;
 
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            string filename = System.IO.Path.GetFileName(files[0]);
+            string path = files[0];
+            
+            OnFileEnteredWindow?.Invoke(path);
+        }
+
+
+        private void MainBorder_PreviewDragOver(object sender, DragEventArgs e)
+        {
+            e.Handled = true;
+        }
+
+        private void MainBorder_PreviewDragLeave(object sender, DragEventArgs e)
+        {
+            e.Handled = true;
+        }
+
+        public void ErrorMessage(string message)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+                MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning)));
         }
     }
 }

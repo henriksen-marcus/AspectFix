@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:AspectFix"
+             xmlns:gif="http://wpfanimatedgif.codeplex.com"
              mc:Ignorable="d"
              d:DesignHeight="650" d:DesignWidth="450"
              Background="Transparent">
@@ -16,17 +17,21 @@
         </Border>
         <Border Background="#645e84"
                 Opacity="2"
-                CornerRadius="16"
+                CornerRadius="18"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"
-                Width="200"
-                Height="140">
+                Width="250"
+                Height="160">
             <StackPanel VerticalAlignment="Center"
                         HorizontalAlignment="Center">
                 <TextBlock Text="Processing file..."
-                           FontSize="18"
+                           FontSize="20"
                            Foreground="White"/>
-                
+                <Image gif:ImageBehavior.AnimatedSource="../Images/loading.gif" 
+                       Width="80"
+                       Stretch="Uniform"
+                       Margin="10"/>
             </StackPanel>
-        </Bo>
+        </Border>
+    </Grid>
 </UserControl>

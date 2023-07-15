@@ -17,25 +17,15 @@ using System.Windows.Shapes;
 namespace AspectFix.Components
 {
     /// <summary>
-    /// Interaction logic for RoundedButton.xaml
+    /// Interaction logic for RoundedImageButton.xaml
     /// </summary>
-    public partial class RoundedButton : UserControl
+    public partial class RoundedImageButton : UserControl
     {
         private static readonly double AnimationTime = 0.01d;
         private static readonly double AnimationScale = 1.04d;
 
-        public static readonly DependencyProperty TextProperty = DependencyProperty.Register(
-                                  "Text", typeof(string), typeof(RoundedButton), new PropertyMetadata(string.Empty));
-        
-        // We need this for text properties, else it will "not be accessible"
-        public string Text
-        {
-            get => (string)GetValue(TextProperty);
-            set => SetValue(TextProperty, value);
-        }
-
         public static readonly DependencyProperty FontSizeProperty = DependencyProperty.Register(
-                                                        "FontSize", typeof(double), typeof(RoundedButton), new PropertyMetadata(18.0));
+                                                        "FontSize", typeof(double), typeof(RoundedImageButton), new PropertyMetadata(18.0));
         public double FontSize
         {
             get => (double)GetValue(FontSizeProperty);
@@ -43,16 +33,16 @@ namespace AspectFix.Components
         }
 
         public static readonly DependencyProperty EnabledProperty = DependencyProperty.Register(
-                                             "Enabled", typeof(bool), typeof(RoundedButton), new PropertyMetadata(true));
+                                             "Enabled", typeof(bool), typeof(RoundedImageButton), new PropertyMetadata(true));
 
         public static readonly DependencyProperty WidthProperty = DependencyProperty.Register(
-                                                        "Width", typeof(double), typeof(RoundedButton), new PropertyMetadata(100.0));
-        
+                                                        "Width", typeof(double), typeof(RoundedImageButton), new PropertyMetadata(100.0));
+
         public static readonly DependencyProperty HeightProperty = DependencyProperty.Register(
-                                                        "Height", typeof(double), typeof(RoundedButton), new PropertyMetadata(30.0));
+                                                        "Height", typeof(double), typeof(RoundedImageButton), new PropertyMetadata(30.0));
 
         public static readonly DependencyProperty ShouldAnimateScaleProperty = DependencyProperty.Register(
-            "ShouldAnimateScale", typeof(bool), typeof(RoundedButton), new PropertyMetadata(true));
+            "ShouldAnimateScale", typeof(bool), typeof(RoundedImageButton), new PropertyMetadata(true));
 
         public bool ShouldAnimateScale
         {
@@ -60,9 +50,19 @@ namespace AspectFix.Components
             set => SetValue(ShouldAnimateScaleProperty, value);
         }
 
-        public static readonly RoutedEvent ClickEvent = EventManager.RegisterRoutedEvent(nameof(Click), RoutingStrategy.Bubble,
-                                                        typeof(RoutedEventHandler), typeof(RoundedButton));
+        public static readonly DependencyProperty ImageSourceProperty = DependencyProperty.Register(
+                                                        "ImageSource", typeof(ImageSource), typeof(RoundedImageButton), new PropertyMetadata(null));
 
+        public ImageSource ImageSource
+        {
+            get { return (ImageSource)GetValue(ImageSourceProperty); }
+            set { SetValue(ImageSourceProperty, value); }
+        }
+
+        public static readonly RoutedEvent ClickEvent = EventManager.RegisterRoutedEvent(nameof(Click), RoutingStrategy.Bubble,
+                                                        typeof(RoutedEventHandler), typeof(RoundedImageButton));
+
+        
         public event RoutedEventHandler Click
         {
             add => AddHandler(ClickEvent, value);
@@ -70,7 +70,7 @@ namespace AspectFix.Components
         }
 
 
-        public RoundedButton()
+        public RoundedImageButton()
         {
             InitializeComponent();
         }
@@ -104,7 +104,7 @@ namespace AspectFix.Components
 
             scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, scaleXAnimation);
             scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, scaleYAnimation);
-        
+
         }
 
         private void Button_OnMouseLeave(object sender, MouseEventArgs e)
