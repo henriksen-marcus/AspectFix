@@ -24,6 +24,7 @@ namespace AspectFix
         public int CroppedWidth { get; private set; }
         public int CroppedHeight { get; private set; }
         public double Length { get; private set; }
+        public double NonBlackFrame { get; private set; }
         public float AspectRatio { get; private set; }
         public float CroppedAspectRatio
         {
@@ -37,6 +38,7 @@ namespace AspectFix
             Extension = System.IO.Path.GetExtension(path);
             (Width, Height) = FileProcessor.GetVideoDimensions(path);
             Length = FileProcessor.GetVideoLength(path);
+            NonBlackFrame = FileProcessor.GetNonBlackFrame(this);
             CroppedWidth = Width;
             CroppedHeight = Height;
             AspectRatio = (float)Math.Max(Width, Height) / (float)Math.Min(Width, Height);
@@ -72,6 +74,14 @@ namespace AspectFix
             }
 
             return (CroppedWidth, CroppedHeight);
+        }
+
+        public string GetLQScale(int width, int height)
+        {
+            if (width > height)
+                return (width < 360) ? $"{width}:-1" : "360:-1";
+
+            return (height < 360) ? $"-1:{height}" : "-1:360";
         }
     }
 }

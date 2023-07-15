@@ -8,6 +8,7 @@ using System.IO;
 using System.Windows;
 using System.Drawing;
 using System.Globalization;
+using System.Windows.Media.Media3D;
 
 namespace AspectFix
 {
@@ -21,6 +22,7 @@ namespace AspectFix
 
         private static string ffmpegPath = "ffmpeg.exe";
         private static string ffprobePath = "ffprobe.exe";
+        private static bool debugEnabled = false;
 
         public static (int, int) GetVideoDimensions(string videoPath)
         {
@@ -76,57 +78,27 @@ namespace AspectFix
             return File.Exists(newFilePath) ? newFilePath : null;
         }
 
+        public static string GetPreviewImage(VideoFile video)
+        {
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old.jpg");
+            string scale = video.Orientation == Orientation.Landscape ? "-1:360" : "360:-1";
+            string arguments = $"-y -noaccurate_seek -copyts -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
+                               $"-frames:v 1 -vf \"scale={video.GetLQScale(video.Width, video.Height)}\" \"{savePath}\"";
+            Runffmpeg(arguments);
+            return File.Exists(savePath) ? savePath : null;
+        }
+
         public static string GetCroppedPreviewImage(VideoFile video, int iterations)
         {
             (int width, int height) = video.GetCroppedDimensions(iterations);
+
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_new.jpg");
 
-            // We don't want a black preview image, so we try 3 times to get a valid one
-            for (int i = 0; i < 3; i++)
-            {
-                string arguments = $"-y -i \"{video.Path}\" -ss {Lerp(0.1, video.Length, (double)i / 3.0).ToString(CultureInfo.InvariantCulture)} -frames:v 1 -vf \"crop={width}:{height}\" \"{savePath}\"";
-
-                Runffmpeg(arguments);
-
-                if (File.Exists(savePath))
-                {
-                    if (IsImageNotBlack(savePath)) return savePath;
-                    File.Delete(savePath);
-                }
-            }
+            string arguments = $"-y -noaccurate_seek -copyts -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
+                               $"-frames:v 1 -vf \"crop={width}:{height}, scale={video.GetLQScale(width, height)}\" \"{savePath}\"";
+            Runffmpeg(arguments);
 
             return File.Exists(savePath) ? savePath : null;
-        }
-
-        public static string GetPreviewImage(VideoFile video)
-        {
-            (int width, int height) = video.GetDimensions();
-            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old.jpg");
-
-            // We don't want a black preview image, so we try 3 times to get a valid one
-            for (int i = 0; i < 3; i++)
-            {
-                string arguments = $"-y -i \"{video.Path}\" -ss {(int)Lerp(0.1, video.Length, (double)i / 3.0)/*.ToString(CultureInfo.InvariantCulture)*/} -frames:v 1 -vf \"crop={width}:{height}\" \"{savePath}\"";
-
-                Runffmpeg(arguments);
-
-                if (File.Exists(savePath))
-                {
-                    if (IsImageNotBlack(savePath)) return savePath;
-                    File.Delete(savePath);
-                }
-            }
-
-            return File.Exists(savePath) ? savePath : null;
-        }
-
-        private static bool IsImageNotBlack(string imagePath)
-        {
-            // Check if image is black at center
-            Bitmap image = new Bitmap(imagePath);
-            var brightness = image.GetPixel(image.Size.Width / 2, image.Size.Height / 2).GetBrightness();
-            image.Dispose();
-            return (brightness > 0.2);
         }
 
         private static string Runffprobe(string arguments)
@@ -168,7 +140,7 @@ namespace AspectFix
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = ffmpegPath;
             startInfo.Arguments = arguments;
-            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardOutput = debugEnabled;
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;
 
@@ -176,12 +148,12 @@ namespace AspectFix
             Process process = new Process();
             process.StartInfo = startInfo;
             int exitCode = 1;
-            string output = "";
+            string output = null;
 
             try
             {
                 process.Start();
-                output = process.StandardOutput.ReadToEnd();
+                output = debugEnabled ? process.StandardOutput.ReadToEnd() : null;
                 process.WaitForExit();
             }
             catch (Exception e)
@@ -200,9 +172,12 @@ namespace AspectFix
                 process.Close();
             }
 
-            Console.WriteLine(output);
-            Console.WriteLine("Exit code: " + exitCode);
-
+            if (debugEnabled)
+            {
+                Console.WriteLine(output);
+                Console.WriteLine("Exit code: " + exitCode);
+            }
+            
             return exitCode == 0;
         }
 
@@ -238,6 +213,34 @@ namespace AspectFix
         public static double Lerp(double a, double b, double t)
         {
             return a * (1 - t) + b * t;
+        }
+
+        public static double GetNonBlackFrame(VideoFile video)
+        {
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "non_black_frame.jpg");
+            double frameTime = 0;
+
+            // We try 3 times to get a valid one
+            for (int i = 0; i < 3; i++)
+            {
+                frameTime = Lerp(0, video.Length, i / 3.0);
+                string arguments =
+                    $"-y -noaccurate_seek -copyts -ss {frameTime.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\" -frames:v 1 {savePath}";
+
+                Runffmpeg(arguments);
+
+                if (File.Exists(savePath))
+                {
+                    // Check if image is black at center
+                    Bitmap image = new Bitmap(savePath);
+                    var brightness = image.GetPixel(image.Size.Width / 2, image.Size.Height / 2).GetBrightness();
+                    image.Dispose();
+                    File.Delete(savePath);
+                    if (brightness > 0.2) return frameTime;
+                }
+            }
+
+            return video.Length / 2;
         }
     }
 }

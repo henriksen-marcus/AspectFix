@@ -23,11 +23,7 @@
         Background="#272537" 
         CornerRadius="20"
         BorderBrush="#635e82"
-        BorderThickness="2"
-        PreviewDragEnter="MainBorder_PreviewDragEnter"
-        PreviewDragOver="MainBorder_PreviewDragOver"
-        PreviewDragLeave="MainBorder_PreviewDragLeave"
-        AllowDrop="True">
+        BorderThickness="2">
 
         <Grid>
 	        <!--Main window grid-->

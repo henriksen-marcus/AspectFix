@@ -123,6 +123,7 @@ namespace AspectFix
 
             MainWindow.Instance.ToggleOverlay();
             MainWindow.Instance.FileProcessed();
+            Cleanup();
             MainWindow.Instance.ChangeView("Home");
         }
 

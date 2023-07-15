@@ -35,12 +35,6 @@ namespace AspectFix.Components
         public static readonly DependencyProperty EnabledProperty = DependencyProperty.Register(
                                              "Enabled", typeof(bool), typeof(RoundedImageButton), new PropertyMetadata(true));
 
-        public static readonly DependencyProperty WidthProperty = DependencyProperty.Register(
-                                                        "Width", typeof(double), typeof(RoundedImageButton), new PropertyMetadata(100.0));
-
-        public static readonly DependencyProperty HeightProperty = DependencyProperty.Register(
-                                                        "Height", typeof(double), typeof(RoundedImageButton), new PropertyMetadata(30.0));
-
         public static readonly DependencyProperty ShouldAnimateScaleProperty = DependencyProperty.Register(
             "ShouldAnimateScale", typeof(bool), typeof(RoundedImageButton), new PropertyMetadata(true));
 
@@ -57,6 +51,15 @@ namespace AspectFix.Components
         {
             get { return (ImageSource)GetValue(ImageSourceProperty); }
             set { SetValue(ImageSourceProperty, value); }
+        }
+
+        public static readonly DependencyProperty ImageMarginProperty = DependencyProperty.Register(
+            "ImageMargin", typeof(Thickness), typeof(RoundedImageButton), new PropertyMetadata(new Thickness(7)));
+
+        public Thickness ImageMargin
+        {
+            get => (Thickness)GetValue(ImageMarginProperty);
+            set => SetValue(ImageMarginProperty, value);
         }
 
         public static readonly RoutedEvent ClickEvent = EventManager.RegisterRoutedEvent(nameof(Click), RoutingStrategy.Bubble,

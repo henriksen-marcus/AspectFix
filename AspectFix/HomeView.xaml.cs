@@ -22,25 +22,18 @@ namespace AspectFix
     /// </summary>
     public partial class HomeView : UserControl
     {
+        private bool _hasDeniedFile = false;
+
         public HomeView()
         {
             InitializeComponent();
             MainWindow.Instance.OnFileProcessed += ResetUI;
             MainWindow.Instance.OnToggleDragOverlay += ToggleDragOverlay;
-            MainWindow.Instance.OnFileEnteredWindow += CheckHeldFile;
-        }
-
-        private void CheckHeldFile(string path)
-        {
-            if (CheckFile(path))
-                DropBorder.AllowDrop = true;
-            else
-                DropBorder.AllowDrop = false;
         }
 
         private bool CheckFile(string path)
         {
-            return (File.Exists(path) && FileProcessor.IsVideoFile(path));
+            return File.Exists(path) && FileProcessor.IsVideoFile(path);
         }
 
         private void ToggleDragOverlay(bool isValidFile)
@@ -86,6 +79,30 @@ namespace AspectFix
         private void RemoveFileButton_Click(object sender, RoutedEventArgs e)
         {
             ResetUI();
+        }
+
+        private void DropBorder_OnDragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop) == false) return;
+
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            string path = files[0];
+
+            Console.WriteLine(path + "AllowDrop: " + CheckFile(path));
+
+            bool allowDrop = CheckFile(path);
+            DropBorder.AllowDrop = allowDrop;
+            _hasDeniedFile = !allowDrop;
+        }
+
+        private void DropBorder_OnMouseLeave(object sender, MouseEventArgs e)
+        {
+            DropBorder.AllowDrop = true;
+        }
+
+        private void DropBorder_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            DropBorder.AllowDrop = true;
         }
     }
 }

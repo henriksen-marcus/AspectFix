@@ -78,34 +78,25 @@
                 ImageSource="Images/plus.png"/>
         </StackPanel>
 
-	    <Button Width="30" 
-	            Height="30"
-	            Click="BackButton_Click"
-	            x:Name="BackButton"
-	            Margin="0 0 0 28"
-	            Grid.Column="0"
-	            Grid.Row="3">
-		    <Button.Template>
-			    <ControlTemplate TargetType="Button">
-				    <Border Background="#635e82" CornerRadius="10">
-					    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				    </Border>
-			    </ControlTemplate>
-		    </Button.Template>
-		    <Image Source="Images/left-arrow.png"
-		           Stretch="Uniform"
-		           Width="14"
-		           Margin="0 0 1.5 0"/>
-	    </Button>
+        <components:RoundedImageButton
+            Width="30"
+            Height="30"
+            Click="BackButton_Click"
+            x:Name="BackButton"
+            Margin="0 0 0 28"
+            Grid.Column="0"
+            Grid.Row="3"
+            ImageSource="Images/left-arrow.png"
+            ImageMargin="7 7 9 7"/>
 
         <components:RoundedButton Width="100" 
-								  Height="30"
-								  Grid.Column="1"
-								  Grid.Row="3"
-								  Click="CropButton_Click"
-								  x:Name="CropButton"
-								  VerticalAlignment="Bottom"
-								  Margin="0 0 0 28"
+                                  Height="30"
+                                  Grid.Column="1"
+                                  Grid.Row="3"
+                                  Click="CropButton_Click"
+                                  x:Name="CropButton"
+                                  VerticalAlignment="Bottom"
+                                  Margin="0 0 0 28"
                                   Text="Crop"
                                   FontSize="16"/>
     </Grid>

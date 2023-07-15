@@ -35,9 +35,6 @@ namespace AspectFix
 
         public delegate void ToggleDragOverlayEventHandler(bool isValidFile);
         public event ToggleDragOverlayEventHandler OnToggleDragOverlay;
-        
-        public delegate void FileEnteredWindowEventHandler(string path);
-        public event FileEnteredWindowEventHandler OnFileEnteredWindow;
 
         public MainWindow()
         {
@@ -81,30 +78,11 @@ namespace AspectFix
                 Viewmodel.SelectedViewModel = new HomeViewModel();
             else if (viewName == "Edit")
                 Viewmodel.SelectedViewModel = new EditViewModel();
+
+            GC.Collect();
         }
 
-        // When the user drags a file into the main window
-        private void MainBorder_PreviewDragEnter(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop) == false) return;
-
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            string path = files[0];
-            
-            OnFileEnteredWindow?.Invoke(path);
-        }
-
-
-        private void MainBorder_PreviewDragOver(object sender, DragEventArgs e)
-        {
-            e.Handled = true;
-        }
-
-        private void MainBorder_PreviewDragLeave(object sender, DragEventArgs e)
-        {
-            e.Handled = true;
-        }
-
+        // We need a central handler for messages, because we can't show a MessageBox from a background thread
         public void ErrorMessage(string message)
         {
             Dispatcher.BeginInvoke(new Action(() =>

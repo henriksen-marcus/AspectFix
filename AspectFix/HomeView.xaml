@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AspectFix"
              xmlns:components="clr-namespace:AspectFix.Components"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
              d:DesignHeight="575" d:DesignWidth="420"
              Background="Transparent">
@@ -23,6 +24,20 @@
             <RowDefinition Height="0.1*"/>
         </Grid.RowDefinitions>
 
+        <Rectangle Fill="Transparent" 
+                   Stroke="White" 
+                   StrokeDashCap="Round"
+                   StrokeThickness="3" 
+                   Grid.Row="0"
+                   Grid.Column="1"
+                   Margin="-1 14 -1 -1"
+                   RadiusX="10"
+                   RadiusY="10">
+            <Rectangle.StrokeDashArray>
+                <sys:Double>3</sys:Double>
+            </Rectangle.StrokeDashArray>
+        </Rectangle>
+
         <!-- Drag drop box -->
         <Border x:Name="DropBorder"
 		        Background="#635e82" 
@@ -32,23 +47,10 @@
 	            Grid.Row="0" 
 	            Grid.Column="1"
 	            Margin="0 15 0 0"
-	            Drop="Border_Drop">
-            <Border.BorderBrush>
-                <DrawingBrush Viewport="0,0,8,8" ViewportUnits="Absolute" TileMode="FlipXY">
-                    <DrawingBrush.Drawing>
-                        <DrawingGroup>
-                            <GeometryDrawing Brush="White">
-                                <GeometryDrawing.Geometry>
-                                    <GeometryGroup>
-                                        <RectangleGeometry Rect="0,0,50,50" />
-                                        <RectangleGeometry Rect="50,50,50,50" />
-                                    </GeometryGroup>
-                                </GeometryDrawing.Geometry>
-                            </GeometryDrawing>
-                        </DrawingGroup>
-                    </DrawingBrush.Drawing>
-                </DrawingBrush>
-            </Border.BorderBrush>
+	            Drop="Border_Drop"
+                DragEnter="DropBorder_OnDragEnter"
+                MouseLeave="DropBorder_OnMouseLeave"
+                MouseLeftButtonUp="DropBorder_OnMouseLeftButtonUp">
             <TextBlock Text="Drag a file here"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Center"
@@ -100,13 +102,6 @@
 				       Stretch="Uniform"/>
             </Button>
         </StackPanel>
-
-        <components:RoundedImageButton
-            Grid.Row="2"
-            Grid.Column="1"
-            Width="30"
-            Height="30"
-            ImageSource="Images/plus.png"/>
 
         <!-- Continue button -->
         <components:RoundedButton x:Name="ContinueButton"

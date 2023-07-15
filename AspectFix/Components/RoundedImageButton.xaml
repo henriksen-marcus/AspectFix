@@ -53,9 +53,7 @@
     <Button x:Name="CustomButton"
             Foreground="White"
 	        FontSize="{Binding FontSize, ElementName=Root}"
-			Width="{Binding WidthProperty}"
-			Height="{Binding HeightProperty}"
-	        Style="{StaticResource DisabledButtonStyle}"
+            Style="{StaticResource DisabledButtonStyle}"
 	        VerticalAlignment="Stretch"
 	        HorizontalAlignment="Stretch"
             Click="CustomButton_Click"
@@ -63,6 +61,6 @@
             MouseLeave="Button_OnMouseLeave">
         <Image Source="{Binding ImageSource, ElementName=Root}"
                Stretch="Uniform"
-               Margin="7"/>
+               Margin="{Binding ImageMargin, ElementName=Root}"/>
     </Button>
 </UserControl>

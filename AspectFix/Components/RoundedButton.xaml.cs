@@ -34,7 +34,7 @@ namespace AspectFix.Components
             set => SetValue(TextProperty, value);
         }
 
-        public static readonly DependencyProperty FontSizeProperty = DependencyProperty.Register(
+        public new static readonly DependencyProperty FontSizeProperty = DependencyProperty.Register(
                                                         "FontSize", typeof(double), typeof(RoundedButton), new PropertyMetadata(18.0));
         public double FontSize
         {
@@ -44,12 +44,6 @@ namespace AspectFix.Components
 
         public static readonly DependencyProperty EnabledProperty = DependencyProperty.Register(
                                              "Enabled", typeof(bool), typeof(RoundedButton), new PropertyMetadata(true));
-
-        public static readonly DependencyProperty WidthProperty = DependencyProperty.Register(
-                                                        "Width", typeof(double), typeof(RoundedButton), new PropertyMetadata(100.0));
-        
-        public static readonly DependencyProperty HeightProperty = DependencyProperty.Register(
-                                                        "Height", typeof(double), typeof(RoundedButton), new PropertyMetadata(30.0));
 
         public static readonly DependencyProperty ShouldAnimateScaleProperty = DependencyProperty.Register(
             "ShouldAnimateScale", typeof(bool), typeof(RoundedButton), new PropertyMetadata(true));
