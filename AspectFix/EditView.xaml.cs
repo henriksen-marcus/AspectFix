@@ -59,7 +59,7 @@ namespace AspectFix
                 _oldPreview = new BitmapImage();
                 _oldPreview.BeginInit();
                 _oldPreview.CacheOption = BitmapCacheOption.OnLoad;
-                _oldPreview.StreamSource = stream; // Set the stream as the StreamSource
+                _oldPreview.StreamSource = stream;
                 _oldPreview.EndInit();
             }
 
