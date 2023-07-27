@@ -76,6 +76,16 @@ namespace AspectFix
             return (CroppedWidth, CroppedHeight);
         }
 
+        public (int, int) GetAnalyzedCroppedDimensions()
+        {
+            (int left, int top, int right, int bottom) = FileProcessor.GetBlackPixels(this);
+            Console.WriteLine($"Left: {left}, Right: {right}, Top: {top}, Bottom: {bottom}");
+            int width = Width - left - right;
+            int height = Height - top - bottom;
+            Console.WriteLine($"Width: {width}, Height: {height}");
+            return (width, height);
+        }
+
         public string GetLQScale(int width, int height)
         {
             if (width > height)

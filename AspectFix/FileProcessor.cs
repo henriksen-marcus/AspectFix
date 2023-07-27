@@ -45,6 +45,47 @@ namespace AspectFix
             return (0, 0);
         }
 
+        // Returns how many pixels on each side are black
+        public static (int, int, int, int) GetBlackPixels(VideoFile video)
+        {
+            var path = GetHQPreviewImage(video);
+            if (path == null) Console.WriteLine("Path is null");
+            var image = new Bitmap(path);
+
+            int left = 0, top = 0, right = 0, bottom = 0;
+
+            for (int x = 0; x < image.Width; x++)
+            {
+                Console.WriteLine($"Left: {left}");
+                var pixel = image.GetPixel(x, image.Height / 2);
+                if (pixel.GetBrightness() > 0) break;
+                left++;
+            }
+
+            for (int x = image.Width - 1; x >= 0; x--)
+            {
+                var pixel = image.GetPixel(x, image.Height / 2);
+                if (pixel.GetBrightness() > 0) break;
+                right++;
+            }
+
+            for (int y = 0; y < image.Height; y++)
+            {
+                var pixel = image.GetPixel(image.Width / 2, y);
+                if (pixel.GetBrightness() > 0) break;
+                top++;
+            }
+            
+            for (int y = image.Height - 1; y >= 0; y--)
+            {
+                var pixel = image.GetPixel(image.Width / 2, y);
+                if (pixel.GetBrightness() > 0) break;
+                bottom++;
+            }
+
+            return (left, top, right, bottom);
+        }
+
         public static double GetVideoLength(string videoPath)
         {
             var output = Runffprobe($"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{videoPath}\"");
@@ -63,9 +104,9 @@ namespace AspectFix
             return length;
         }
 
-        public static string Crop(VideoFile video)
+        public static string Crop(VideoFile video, int iterations)
         {
-            (int width, int height) = video.GetCroppedDimensions(1);
+            (int width, int height) = video.GetCroppedDimensions(iterations);
 
             string newFileName = $"{video.FileName}.cropped{video.Extension}";
             string newFilePath = Path.Combine(Path.GetDirectoryName(video.Path), newFileName);
@@ -88,9 +129,18 @@ namespace AspectFix
             return File.Exists(savePath) ? savePath : null;
         }
 
+        public static string GetHQPreviewImage(VideoFile video)
+        {
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old_hq.jpg");
+            string arguments = $"-y -noaccurate_seek -copyts -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
+                               $"-frames:v 1 \"{savePath}\"";
+            Runffmpeg(arguments);
+            return File.Exists(savePath) ? savePath : null;
+        }
+
         public static string GetCroppedPreviewImage(VideoFile video, int iterations)
         {
-            (int width, int height) = video.GetCroppedDimensions(iterations);
+            (int width, int height) = video.GetAnalyzedCroppedDimensions();
 
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_new.jpg");
 
