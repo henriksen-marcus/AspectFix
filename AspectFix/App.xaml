@@ -4,11 +4,20 @@
              xmlns:local="clr-namespace:AspectFix"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <DataTemplate DataType="{x:Type local:HomeViewModel}">
-	        <local:HomeView/>
-        </DataTemplate>
-	    <DataTemplate DataType="{x:Type local:EditViewModel}">
-		    <local:EditView/>
-	    </DataTemplate>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/ComboBoxStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- DataTemplates (if you have any) -->
+            <DataTemplate DataType="{x:Type local:HomeViewModel}">
+                <local:HomeView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type local:EditViewModel}">
+                <local:EditView />
+            </DataTemplate>
+
+            <!-- Add more resource definitions here if needed -->
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

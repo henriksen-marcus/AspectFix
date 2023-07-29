@@ -9,7 +9,55 @@
              d:DesignHeight="575" d:DesignWidth="420"
              Background="Transparent">
 	<UserControl.Resources>
-	</UserControl.Resources>
+        <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="White" />
+            <!--<Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="14" />-->
+            <!--<Setter Property="Margin" Value="5" />-->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                          BorderBrush="Transparent"
+                                          Background="Transparent"
+                                          ClickMode="Press"
+                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="#635e82"
+                                                CornerRadius="10">
+                                                <Image Source="Images/down-arrow.png" 
+                                                       Width="20" 
+                                                       Height="20" 
+                                                       Margin="5 5 10 5"
+                                                       HorizontalAlignment="Right"/>
+                                            </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup x:Name="Popup"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Grid>
+                                    <Border x:Name="DropDownBorder"
+                                            BorderBrush="Transparent"
+                                            Background="#635e82"
+                                            BorderThickness="0"
+                                            CornerRadius="10">
+                                        <ItemsPresenter />
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <Grid ShowGridLines="False">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="0.15*"/>
@@ -43,13 +91,36 @@
 			       Stretch="Uniform"
 			       MaxHeight="167.25"/>
 		</StackPanel>
-
-        <StackPanel Grid.Row="2"
+        <!--<ComboBox x:Name="AspectDropdown"
+                  Grid.Row="2"
+                  Grid.Column="1">
+            <ComboBoxItem Content="Auto"/>
+        </ComboBox>-->
+        <ComboBox Template="{DynamicResource ComboBoxTemplate1}" Style="{DynamicResource ComboBoxStyle1}" ItemContainerStyle="{DynamicResource ComboBoxItemContainerStyle1}" Width="150" 
+                  Height="35" Grid.Row="2"
+                  Grid.Column="1"
+                  VerticalAlignment="Top"
+                  Margin="0 5 0 0"
+                  Foreground="Black">
+            <!--<ComboBox.Template>
+                <ControlTemplate TargetType="{x:Type ComboBox}">
+                    <Border Background="White"
+                            CornerRadius="10">
+                        <ContentPresenter HorizontalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </ComboBox.Template>
+            <ComboBoxItem Content="Auto"/>
+            <ComboBoxItem Content="Item 2" />
+            <ComboBoxItem Content="Item 3" />
+            <ComboBoxItem Content="Item 4" />-->
+        </ComboBox>
+        <!--<StackPanel Grid.Row="2"
                     Grid.Column="1"
                     Orientation="Horizontal"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top">
-			<!--Iteration box-->
+			--><!--Iteration box--><!--
 	        <Border Background="#635e82"
 	                CornerRadius="10"
 	                Height="30">
@@ -60,7 +131,7 @@
                            FontSize="16"
                            Margin="10 0 10 0"/>
             </Border>
-            <!--Minus button-->
+            --><!--Minus button--><!--
             <components:RoundedImageButton
                 Width="30"
                 Height="30"
@@ -68,7 +139,7 @@
                 x:Name="MinusButton"
                 Margin="4 0 2 0"
                 ImageSource="Images/minus.png"/>
-            <!--Plus button-->
+            --><!--Plus button--><!--
             <components:RoundedImageButton
                 Width="30"
                 Height="30"
@@ -76,7 +147,7 @@
                 x:Name="Plus"
                 Margin="2 0 2 0"
                 ImageSource="Images/plus.png"/>
-        </StackPanel>
+        </StackPanel>-->
 
         <components:RoundedImageButton
             Width="30"

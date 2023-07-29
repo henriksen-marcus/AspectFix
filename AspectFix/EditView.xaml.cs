@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Path = System.IO.Path;
 
 namespace AspectFix
 {
@@ -34,7 +35,7 @@ namespace AspectFix
                 else if (value < 1) _iterationCount = 1;
                 else _iterationCount = value;
 
-                IterationsTextBlock.Text = "Iterations: " + _iterationCount.ToString();
+                //IterationsTextBlock.Text = "Iterations: " + _iterationCount.ToString();
             }
         }
 
@@ -42,7 +43,7 @@ namespace AspectFix
         {
             InitializeComponent();
             MainWindow.Instance.OnExitApp += Cleanup;
-            InitPreviews();
+            if (MainWindow.Instance.SelectedFile != null) InitPreviews();
         }
 
         public void InitPreviews()
@@ -117,9 +118,24 @@ namespace AspectFix
         {
             MainWindow.Instance.ToggleOverlay();
 
-            Task<string> task = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile));
+            await Task.Run(async () =>
+            {
+                Task<string> task = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile, IterationCount));
+                string path = await task;
+
+                string newFileName = $"{MainWindow.Instance.SelectedFile.FileName}.cropped{MainWindow.Instance.SelectedFile.Extension}";
+                string newFilePath = Path.Combine(Path.GetDirectoryName(MainWindow.Instance.SelectedFile.Path), newFileName);
+                FileInfo oldFileInfo = new FileInfo(MainWindow.Instance.SelectedFile.Path);
+                FileInfo newFileInfo = new FileInfo(newFilePath);
+                var progress = newFileInfo.Length / oldFileInfo.Length;
+                await MainWindow.Instance.LoadingOverlay.UpdateProgress((int)progress);
+
+                    if (path == null) MainWindow.Instance.ErrorMessage("Failed to crop video.");
+            });
+
+            /*Task<string> task = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile, IterationCount));
             string path = await task;
-            if (path == null) MainWindow.Instance.ErrorMessage("Failed to crop video.");
+            if (path == null) MainWindow.Instance.ErrorMessage("Failed to crop video.");*/
 
             MainWindow.Instance.ToggleOverlay();
             MainWindow.Instance.FileProcessed();

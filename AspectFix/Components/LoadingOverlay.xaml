@@ -31,6 +31,12 @@
                        Width="80"
                        Stretch="Uniform"
                        Margin="10"/>
+
+                <ProgressBar
+                    Minimum="0"
+                    Maximum="100"
+                    Name="ProgressBar"
+                    Height="20"/>
             </StackPanel>
         </Border>
     </Grid>
