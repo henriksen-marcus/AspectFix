@@ -20,6 +20,12 @@ namespace AspectFix
             FFPROBE
         }
 
+        public struct CropOptions
+        {
+            public bool isAuto;
+            public int iterations;
+        }
+
         private static string ffmpegPath = "ffmpeg.exe";
         private static string ffprobePath = "ffprobe.exe";
         private static bool debugEnabled = false;
@@ -37,10 +43,7 @@ namespace AspectFix
                 int height = int.Parse(dimensions[1]);
                 return (width, height);
             }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, "GetVideoDimensions error", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
+            catch (Exception e) { }
 
             return (0, 0);
         }
@@ -49,40 +52,45 @@ namespace AspectFix
         public static (int, int, int, int) GetBlackPixels(VideoFile video)
         {
             var path = GetHQPreviewImage(video);
-            if (path == null) Console.WriteLine("Path is null");
+            if (!File.Exists(path)) return (0, 0, 0, 0);
             var image = new Bitmap(path);
+            double tolerance = 0.01;
 
             int left = 0, top = 0, right = 0, bottom = 0;
 
             for (int x = 0; x < image.Width; x++)
             {
-                Console.WriteLine($"Left: {left}");
                 var pixel = image.GetPixel(x, image.Height / 2);
-                if (pixel.GetBrightness() > 0) break;
+                if (pixel.GetBrightness() > tolerance) break;
                 left++;
             }
 
             for (int x = image.Width - 1; x >= 0; x--)
             {
                 var pixel = image.GetPixel(x, image.Height / 2);
-                if (pixel.GetBrightness() > 0) break;
+                if (pixel.GetBrightness() > tolerance) break;
                 right++;
             }
 
             for (int y = 0; y < image.Height; y++)
             {
                 var pixel = image.GetPixel(image.Width / 2, y);
-                if (pixel.GetBrightness() > 0) break;
+                if (pixel.GetBrightness() > tolerance) break;
                 top++;
             }
             
             for (int y = image.Height - 1; y >= 0; y--)
             {
                 var pixel = image.GetPixel(image.Width / 2, y);
-                if (pixel.GetBrightness() > 0) break;
+                if (pixel.GetBrightness() > tolerance) break;
                 bottom++;
             }
 
+            image.Dispose();
+            GC.Collect();
+            File.Delete(path);
+
+            Console.WriteLine($"Left: {left}, Top: {top}, Right: {right}, Bottom: {bottom}");
             return (left, top, right, bottom);
         }
 
@@ -104,17 +112,24 @@ namespace AspectFix
             return length;
         }
 
-        public static string Crop(VideoFile video, int iterations)
+        public static string Crop(VideoFile video, CropOptions options)
         {
-            (int width, int height) = video.GetCroppedDimensions(iterations);
+            (int width, int height, int x, int y) = video.GetCroppedDimensions(options);
 
             string newFileName = $"{video.FileName}.cropped{video.Extension}";
             string newFilePath = Path.Combine(Path.GetDirectoryName(video.Path), newFileName);
 
+            string videoFilters = $"-filter:v \"crop={width}:{height}:{x}:{y}";
+
+            string rotateCommand = video.GetRotateCommand();
+            if (rotateCommand != null)
+                videoFilters += $",transpose={rotateCommand}\"";
+            else
+                videoFilters += "\"";
+
             // Saves to the same location as original file
-            string arguments = $"-y -i \"{video.Path}\" -filter:v \"crop={width}:{height}\" -c:a copy \"{newFilePath}\"";
+            string arguments = $"-y -i \"{video.Path}\" {videoFilters} -c:a copy \"{newFilePath}\"";
             var success = Runffmpeg(arguments);
-            Console.WriteLine("Success: " + success);
 
             return File.Exists(newFilePath) ? newFilePath : null;
         }
@@ -129,6 +144,7 @@ namespace AspectFix
             return File.Exists(savePath) ? savePath : null;
         }
 
+        // Get a full resolution preview image
         public static string GetHQPreviewImage(VideoFile video)
         {
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old_hq.jpg");
@@ -138,14 +154,22 @@ namespace AspectFix
             return File.Exists(savePath) ? savePath : null;
         }
 
-        public static string GetCroppedPreviewImage(VideoFile video, int iterations)
+        public static string GetCroppedPreviewImage(VideoFile video, CropOptions options)
         {
-            (int width, int height) = video.GetAnalyzedCroppedDimensions();
+            (int width, int height, int x, int y) = video.GetCroppedDimensions(options);
 
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_new.jpg");
+            string position = (x != 0 || y != 0) ? (x + ":" + y) : "";
+            string videoFilters = $"-vf \"crop={width}:{height}:{position}, scale={video.GetLQScale(width, height)}";
+
+            string rotateCommand = video.GetRotateCommand();
+            if (rotateCommand != null)
+                videoFilters += $",transpose={rotateCommand}\"";
+            else
+                videoFilters += "\"";
 
             string arguments = $"-y -noaccurate_seek -copyts -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
-                               $"-frames:v 1 -vf \"crop={width}:{height}, scale={video.GetLQScale(width, height)}\" \"{savePath}\"";
+                               $"-frames:v 1 {videoFilters} \"{savePath}\"";
             Runffmpeg(arguments);
 
             return File.Exists(savePath) ? savePath : null;
@@ -203,6 +227,7 @@ namespace AspectFix
             try
             {
                 process.Start();
+                MainWindow.Instance.CurrentPID = process.Id;
                 output = debugEnabled ? process.StandardOutput.ReadToEnd() : null;
                 process.WaitForExit();
             }
@@ -265,7 +290,12 @@ namespace AspectFix
             return a * (1 - t) + b * t;
         }
 
-        public static double GetNonBlackFrame(VideoFile video)
+        public static int Lerp(int a, int b, double t)
+        {
+            return (int)(a * (1 - t) + b * t);
+        }
+
+        public static double GetNonBlackFrameTime(VideoFile video)
         {
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "non_black_frame.jpg");
             double frameTime = 0;

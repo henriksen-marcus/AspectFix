@@ -12,15 +12,11 @@ namespace AspectFix
             InitializeComponent();
         }
 
-        public async Task UpdateProgress(int value)
+        public void UpdateProgress(int value)
         {
-            while (value < 100)
-            {
-                await Task.Delay(100);
-                ProgressBar.Dispatcher.Invoke(() => ProgressBar.Value = value);
-                value++;
-            }
-            ProgressBar.Dispatcher.Invoke(() => ProgressBar.Value = 100);
+            //ProgressBar.Dispatcher.Invoke(() => ProgressBar.Value = value);
+            var text = value == 100 ? "Finishing up..." : value.ToString() + "%";
+            ProgressTextBlock.Dispatcher.Invoke(() => ProgressTextBlock.Text = text);
         }
     }
 }

@@ -1,19 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Path = System.IO.Path;
 
 namespace AspectFix
 {
@@ -35,15 +26,20 @@ namespace AspectFix
                 else if (value < 1) _iterationCount = 1;
                 else _iterationCount = value;
 
-                //IterationsTextBlock.Text = "Iterations: " + _iterationCount.ToString();
+                IterationsTextBlock.Text = "Iterations: " + _iterationCount.ToString();
             }
         }
+
+        private bool _hasInititated = false;
+        private FileProcessor.CropOptions _currentCropOptions;
 
         public EditView()
         {
             InitializeComponent();
             MainWindow.Instance.OnExitApp += Cleanup;
             if (MainWindow.Instance.SelectedFile != null) InitPreviews();
+
+            CheckIfWeCanCrop();
         }
 
         public void InitPreviews()
@@ -68,7 +64,9 @@ namespace AspectFix
             UpdatePreview();
         }
 
-        // Generates the cropped (new) preview image
+        /// <summary>
+        /// Generates the cropped (new) preview image
+        /// </summary>
         private void UpdatePreview()
         {
             // Delete previous preview before making a new one else we
@@ -81,7 +79,7 @@ namespace AspectFix
                 //File.Delete("preview_new.jpg");
             }
 
-            string newPreviewPath = FileProcessor.GetCroppedPreviewImage(MainWindow.Instance.SelectedFile, IterationCount);
+            string newPreviewPath = FileProcessor.GetCroppedPreviewImage(MainWindow.Instance.SelectedFile, GetCropOptions());
             if (newPreviewPath != null)
             {
                 using (FileStream stream = File.OpenRead(newPreviewPath))
@@ -98,6 +96,76 @@ namespace AspectFix
                 ImagePreviewNew.Source = _newPreview;
             }
             else MainWindow.Instance.ErrorMessage("Failed to generate preview image.");
+        }
+
+        /// <summary>
+        /// Releases preview images from memory and deletes the files
+        /// </summary>
+        private void Cleanup()
+        {
+            _oldPreview?.StreamSource?.Dispose();
+            _newPreview?.StreamSource?.Dispose();
+            _oldPreview = null;
+            _newPreview = null;
+            GC.Collect();
+
+            File.Delete("preview_new.jpg");
+            File.Delete("preview_old.jpg");
+        }
+
+        /// <summary>
+        /// Enable/disable the crop button based on conditions
+        /// </summary>
+        public void CheckIfWeCanCrop()
+        {
+            var options = GetCropOptions();
+            VideoFile vid = MainWindow.Instance.SelectedFile;
+            Components.RoundedButton btn = CropButton;
+            if (btn != null && vid != null)
+            {
+                var dim1 = vid.GetCroppedDimensions(options);
+                (int, int) dim2 = (dim1.Item1, dim1.Item2);
+                btn.IsEnabled = vid.GetDimensions() != dim2 || vid.Rotation != 0;
+            }
+        }
+
+        private FileProcessor.CropOptions GetCropOptions()
+        {
+            bool auto = AspectDropDown.SelectedIndex == 0;
+            var options = new FileProcessor.CropOptions
+            {
+                isAuto = auto,
+                iterations = IterationCount,
+            };
+            return options;
+        }
+
+        private void AspectDropDown_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_hasInititated)
+            {
+                _hasInititated = true;
+                return;
+            }
+
+            CheckIfWeCanCrop();
+
+            if (AspectDropDown.SelectedIndex == 1)
+            {
+                IterationsPanel.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                IterationsPanel.Visibility = Visibility.Collapsed;
+            }
+
+            UpdatePreview();
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            Cleanup();
+            MainWindow.Instance.ChangeView("Home");
         }
 
         private void PlusButton_Click(object sender, RoutedEventArgs e)
@@ -117,49 +185,72 @@ namespace AspectFix
         private async void CropButton_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.Instance.ToggleOverlay();
+            var timer = new Timer(100);
+            timer.Elapsed += (timerSender, timerEvent) => 
+            {
+                MainWindow.Instance.LoadingOverlay.UpdateProgress(GetProgress());
+            };
+            var options = GetCropOptions();
+            _currentCropOptions = options;
 
             await Task.Run(async () =>
             {
-                Task<string> task = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile, IterationCount));
+                timer.Start();
+                Task<string> task = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile, options));
                 string path = await task;
+                timer.Stop();
 
-                string newFileName = $"{MainWindow.Instance.SelectedFile.FileName}.cropped{MainWindow.Instance.SelectedFile.Extension}";
-                string newFilePath = Path.Combine(Path.GetDirectoryName(MainWindow.Instance.SelectedFile.Path), newFileName);
-                FileInfo oldFileInfo = new FileInfo(MainWindow.Instance.SelectedFile.Path);
-                FileInfo newFileInfo = new FileInfo(newFilePath);
-                var progress = newFileInfo.Length / oldFileInfo.Length;
-                await MainWindow.Instance.LoadingOverlay.UpdateProgress((int)progress);
+                if (path == null) MainWindow.Instance.ErrorMessage("Failed to crop video.");
 
-                    if (path == null) MainWindow.Instance.ErrorMessage("Failed to crop video.");
+                MainWindow.Instance.LoadingOverlay.UpdateProgress(100);
+                await Task.Delay(300);
             });
 
-            /*Task<string> task = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile, IterationCount));
-            string path = await task;
-            if (path == null) MainWindow.Instance.ErrorMessage("Failed to crop video.");*/
-
+            MainWindow.Instance.LoadingOverlay.UpdateProgress(0);
             MainWindow.Instance.ToggleOverlay();
             MainWindow.Instance.FileProcessed();
             Cleanup();
             MainWindow.Instance.ChangeView("Home");
         }
 
-
-        private void Cleanup()
+        /// <returns>The estimated progress of processing the video file from 0-100</returns>
+        private int GetProgress()
         {
-            _oldPreview?.StreamSource?.Dispose();
-            _newPreview?.StreamSource?.Dispose();
-            _oldPreview = null;
-            _newPreview = null;
-            GC.Collect();
+            string newFileName = $"{MainWindow.Instance.SelectedFile.FileName}.cropped{MainWindow.Instance.SelectedFile.Extension}";
+            string newFilePath = Path.Combine(Path.GetDirectoryName(MainWindow.Instance.SelectedFile.Path), newFileName);
+            if (!File.Exists(newFilePath))
+            {
+                Console.WriteLine("File does not exist");
+                return 0;
+            }
+            FileInfo oldFileInfo = new FileInfo(MainWindow.Instance.SelectedFile.Path);
+            FileInfo newFileInfo = new FileInfo(newFilePath);
 
-            File.Delete("preview_new.jpg");
-            File.Delete("preview_old.jpg");
+            var oldDims = MainWindow.Instance.SelectedFile.GetDimensions();
+            var newDims = MainWindow.Instance.SelectedFile.GetCroppedDimensions(_currentCropOptions);
+            var oldArea = oldDims.Item1 * oldDims.Item2;
+            var newArea = newDims.Item1 * newDims.Item2;
+            var percentageChange = (double)newArea / (double)oldArea;
+            Console.WriteLine("Expected file size in MB: " + (double)oldFileInfo.Length/1000000 * percentageChange);
+            Console.WriteLine("Actual file size in MB: " + (double)newFileInfo.Length/1000000);
+            Console.WriteLine("Percentage change: " + percentageChange);
+            int progress = FileProcessor.Lerp(0, 100, (double)newFileInfo.Length/((double)oldFileInfo.Length * percentageChange));
+            if (progress > 100) progress = 100;
+            return (int)progress;
         }
 
-        private void BackButton_Click(object sender, RoutedEventArgs e)
+        private void RotateLeftButton_OnClick(object sender, RoutedEventArgs e)
         {
-            Cleanup();
-            MainWindow.Instance.ChangeView("Home");
+            MainWindow.Instance.SelectedFile?.AddRotation(-90);
+            UpdatePreview();
+            CheckIfWeCanCrop();
+        }
+
+        private void RotateRightButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            MainWindow.Instance.SelectedFile?.AddRotation(90);
+            UpdatePreview();
+            CheckIfWeCanCrop();
         }
     }
 }

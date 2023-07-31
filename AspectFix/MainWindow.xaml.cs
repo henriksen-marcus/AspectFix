@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -25,6 +26,10 @@ namespace AspectFix
         public MainViewModel Viewmodel;
         public VideoFile SelectedFile { get; private set; }
         public static MainWindow Instance { get; private set; }
+        /// <summary>
+        /// The PID of the current running process
+        /// </summary>
+        public int CurrentPID { get; set; } = 0;
 
         // ---------- Events ---------- //
         public delegate void FileProcessedEventHandler();
@@ -44,7 +49,13 @@ namespace AspectFix
             DataContext = Viewmodel;
         }
 
-        public void FileProcessed() => OnFileProcessed?.Invoke();
+        public void FileProcessed()
+        {
+            OnFileProcessed?.Invoke();
+            CurrentPID = 0;
+            SelectedFile = null;
+        } 
+
         public void ExitApp() => OnExitApp?.Invoke();
         public void ToggleDragOverlay(bool isValidFile) => OnToggleDragOverlay?.Invoke(isValidFile);
 
@@ -57,18 +68,31 @@ namespace AspectFix
         // For dragging the window around
         public void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            this.DragMove();
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
         }
 
         private void CloseButton_OnClick(object sender, RoutedEventArgs e)
         {
             ExitApp();
+
+            if (CurrentPID != 0)
+            {
+                var process = Process.GetProcessById(CurrentPID);
+                process.Kill();
+                process.WaitForExit();
+                if (process.HasExited == false) ErrorMessage("Could not close ffmpeg. PID: " + CurrentPID);
+            }
+            
             Application.Current.Shutdown();
         }
 
         public void ToggleOverlay()
         {
             LoadingOverlay.Visibility = LoadingOverlay.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+            MainGridOverlay.Visibility = LoadingOverlay.Visibility;
             //MainBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#656500"));
         }
 
@@ -87,6 +111,11 @@ namespace AspectFix
         {
             Dispatcher.BeginInvoke(new Action(() =>
                 MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning)));
+        }
+
+        private void CloseButton_Overlay_OnClick(object sender, RoutedEventArgs e)
+        {
+            CloseButton_OnClick(sender, e);
         }
     }
 }

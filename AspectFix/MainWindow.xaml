@@ -100,6 +100,68 @@
             </Grid>
             <!--End of main window grid-->
 	        <local:LoadingOverlay x:Name="LoadingOverlay" Visibility="Collapsed"/>
+            
+            <!-- Dupe of main grid for overlay -->
+            <Grid x:Name="MainGridOverlay" 
+                  Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <!--Declare a new row-->
+                    <RowDefinition Height="75"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!--Top toolbar grid-->
+                <Grid Grid.Row="0" VerticalAlignment="Stretch" ShowGridLines="False">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!--Here we create two columns-->
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"></ColumnDefinition>
+                        <ColumnDefinition Width="*" ></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="CloseButton_Overlay" Grid.Column="1" 
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Width="32"
+                            Height="32"
+                            Foreground="White"
+                            FontSize="28"
+                            Margin="0 ,0 ,20,0"
+                            Panel.ZIndex="999"
+                            Click="CloseButton_Overlay_OnClick">
+	                    <Button.Style>
+		                    <Style TargetType="Button">
+                                <Setter Property="Background" Value="#635e82"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+			                    <Setter Property="Template">
+				                    <Setter.Value>
+					                    <ControlTemplate TargetType="Button">
+						                    <Border Background="{TemplateBinding Background}"
+						                            BorderBrush="{TemplateBinding BorderBrush}"
+						                            BorderThickness="0"
+						                            CornerRadius="5">
+							                    <ContentPresenter HorizontalAlignment="Center"
+							                                      VerticalAlignment="Center" />
+						                    </Border>
+					                    </ControlTemplate>
+				                    </Setter.Value>
+			                    </Setter>
+			                    <Style.Triggers>
+				                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#f23d3d" />
+				                    </Trigger>
+			                    </Style.Triggers>
+		                    </Style>
+	                    </Button.Style>
+	                    <Image Source="Images/x_thick.png"
+	                           Stretch="Uniform"
+	                           Width="16"/>
+                    </Button>
+                </Grid>
+            </Grid>
         </Grid>
         <!--End of overlay grid-->
 

@@ -48,7 +48,7 @@ namespace AspectFix
                 return;
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             string filename = System.IO.Path.GetFileName(files[0]);
-            FileNameTextBlock.Text = FileProcessor.ShortenString(filename, 22);
+            FileNameTextBlock.Text = FileProcessor.ShortenString(filename, 24);
             MainWindow.Instance.SetSelectedFile(files[0]);
             RemoveFileButton.Visibility = Visibility.Visible;
 
@@ -87,8 +87,6 @@ namespace AspectFix
 
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             string path = files[0];
-
-            Console.WriteLine(path + "AllowDrop: " + CheckFile(path));
 
             bool allowDrop = CheckFile(path);
             DropBorder.AllowDrop = allowDrop;

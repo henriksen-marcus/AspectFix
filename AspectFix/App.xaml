@@ -7,6 +7,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ComboBoxStyle.xaml" />
+                <ResourceDictionary Source="Styles/ProgressBarStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- DataTemplates (if you have any) -->
