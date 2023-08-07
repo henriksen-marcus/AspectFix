@@ -14,12 +14,6 @@ namespace AspectFix
 {
     public class FileProcessor
     {
-        private enum ProgramType
-        {
-            FFMPEG,
-            FFPROBE
-        }
-
         public struct CropOptions
         {
             public bool isAuto;
@@ -48,7 +42,7 @@ namespace AspectFix
             return (0, 0);
         }
 
-        // Returns how many pixels on each side are black
+        /// <returns>How many pixels on (left, top, right, bottom) are black</returns>
         public static (int, int, int, int) GetBlackPixels(VideoFile video)
         {
             var path = GetHQPreviewImage(video);
@@ -94,6 +88,7 @@ namespace AspectFix
             return (left, top, right, bottom);
         }
 
+        /// <returns>Video length in seconds</returns>
         public static double GetVideoLength(string videoPath)
         {
             var output = Runffprobe($"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{videoPath}\"");
@@ -112,14 +107,18 @@ namespace AspectFix
             return length;
         }
 
+        /// <summary>
+        /// Runs the crop and rotate operations on a copy of the video
+        /// </summary>
+        /// <returns>Path to the successfully processed video file, else null</returns>
         public static string Crop(VideoFile video, CropOptions options)
         {
             (int width, int height, int x, int y) = video.GetCroppedDimensions(options);
 
             string newFileName = $"{video.FileName}.cropped{video.Extension}";
             string newFilePath = Path.Combine(Path.GetDirectoryName(video.Path), newFileName);
-
-            string videoFilters = $"-filter:v \"crop={width}:{height}:{x}:{y}";
+            string position = (x != 0 || y != 0) ? (x + ":" + y) : "";
+            string videoFilters = $"-filter:v \"crop={width}:{height}:{position}";
 
             string rotateCommand = video.GetRotateCommand();
             if (rotateCommand != null)
@@ -134,6 +133,8 @@ namespace AspectFix
             return File.Exists(newFilePath) ? newFilePath : null;
         }
 
+        /// <returns>Path to a low resolution, uncropped, non-black frame of the video. May be null
+        /// if no preview could be generated</returns>
         public static string GetPreviewImage(VideoFile video)
         {
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old.jpg");
@@ -144,7 +145,8 @@ namespace AspectFix
             return File.Exists(savePath) ? savePath : null;
         }
 
-        // Get a full resolution preview image
+        /// <returns>Path to a full resolution, uncropped, non-black frame of the video. May be null
+        /// if no preview could be generated</returns>
         public static string GetHQPreviewImage(VideoFile video)
         {
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old_hq.jpg");
@@ -154,6 +156,9 @@ namespace AspectFix
             return File.Exists(savePath) ? savePath : null;
         }
 
+
+        /// <returns>Path to a low resolution, cropped and rotated, non-black frame of the video. May be null
+        /// if no preview could be generated</returns>
         public static string GetCroppedPreviewImage(VideoFile video, CropOptions options)
         {
             (int width, int height, int x, int y) = video.GetCroppedDimensions(options);
@@ -175,6 +180,10 @@ namespace AspectFix
             return File.Exists(savePath) ? savePath : null;
         }
 
+        /// <summary>
+        /// Runs ffprobe with the given arguments
+        /// </summary>
+        /// <returns>The output</returns>
         private static string Runffprobe(string arguments)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -197,8 +206,7 @@ namespace AspectFix
             }
             catch (Exception ex)
             {
-                // Handle the exception
-                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MainWindow.Instance.ErrorMessage(ex.Message);
             }
             finally
             {

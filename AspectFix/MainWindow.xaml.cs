@@ -47,6 +47,12 @@ namespace AspectFix
             Instance = this;
             Viewmodel = new MainViewModel();
             DataContext = Viewmodel;
+
+            if (!File.Exists("ffmpeg.exe") || !File.Exists("ffprobe.exe"))
+            {
+                ErrorMessage("ffmpeg or ffprobe not found. Please place ffmpeg.exe and ffprobe.exe in the same folder as AspectFix.exe.");
+                Application.Current.Shutdown();
+            }
         }
 
         public void FileProcessed()
