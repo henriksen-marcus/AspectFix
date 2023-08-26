@@ -97,8 +97,7 @@
                           SelectionChanged="AspectDropDown_OnSelectionChanged">
                     <ComboBoxItem Content="Auto"/>
                     <ComboBoxItem Content="Orientation" />
-                    <ComboBoxItem Content="16:9" />
-                    <ComboBoxItem Content="9:16" />
+                    <ComboBoxItem Content="None" />
                 </ComboBox>
             </StackPanel>
             <StackPanel Orientation="Horizontal"

@@ -132,11 +132,13 @@ namespace AspectFix
         private FileProcessor.CropOptions GetCropOptions()
         {
             bool auto = AspectDropDown.SelectedIndex == 0;
+            bool crop = AspectDropDown.SelectedIndex != 2;
             var options = new FileProcessor.CropOptions
             {
                 isAuto = auto,
+                shouldCrop = crop,
                 iterations = IterationCount,
-            };
+        };
             return options;
         }
 
@@ -230,10 +232,10 @@ namespace AspectFix
             var newDims = MainWindow.Instance.SelectedFile.GetCroppedDimensions(_currentCropOptions);
             var oldArea = oldDims.Item1 * oldDims.Item2;
             var newArea = newDims.Item1 * newDims.Item2;
-            var percentageChange = (double)newArea / (double)oldArea;
-            Console.WriteLine("Expected file size in MB: " + (double)oldFileInfo.Length/1000000 * percentageChange);
-            Console.WriteLine("Actual file size in MB: " + (double)newFileInfo.Length/1000000);
-            Console.WriteLine("Percentage change: " + percentageChange);
+            var percentageChange = (double)newArea / (double)oldArea + 0.1;
+            //Console.WriteLine("Expected file size in MB: " + (double)oldFileInfo.Length/1000000 * percentageChange);
+            //Console.WriteLine("Actual file size in MB: " + (double)newFileInfo.Length/1000000);
+            //Console.WriteLine("Percentage change: " + percentageChange);
             int progress = FileProcessor.Lerp(0, 100, (double)newFileInfo.Length/((double)oldFileInfo.Length * percentageChange));
             if (progress > 100) progress = 100;
             return (int)progress;

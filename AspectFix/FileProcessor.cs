@@ -17,6 +17,7 @@ namespace AspectFix
         public struct CropOptions
         {
             public bool isAuto;
+            public bool shouldCrop;
             public int iterations;
         }
 
@@ -117,14 +118,24 @@ namespace AspectFix
 
             string newFileName = $"{video.FileName}.cropped{video.Extension}";
             string newFilePath = Path.Combine(Path.GetDirectoryName(video.Path), newFileName);
-            string position = (x != 0 || y != 0) ? (x + ":" + y) : "";
-            string videoFilters = $"-filter:v \"crop={width}:{height}:{position}";
+            string position = (x != 0 || y != 0) ? (x + ":" + y) : null;
+            string videoFilters = $"-filter:v ";
+
+            if (options.shouldCrop)
+            {
+                videoFilters += $"\"crop={width}:{height}";
+                if (position != null) videoFilters += $":{position},";
+                else videoFilters += ",";
+            }
+            else videoFilters += $"\"";
 
             string rotateCommand = video.GetRotateCommand();
             if (rotateCommand != null)
-                videoFilters += $",transpose={rotateCommand}\"";
+                videoFilters += $"transpose={rotateCommand}\"";
             else
                 videoFilters += "\"";
+
+            if (options.shouldCrop == false && rotateCommand == null) videoFilters = "";
 
             // Saves to the same location as original file
             string arguments = $"-y -i \"{video.Path}\" {videoFilters} -c:a copy \"{newFilePath}\"";
@@ -165,13 +176,18 @@ namespace AspectFix
 
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_new.jpg");
             string position = (x != 0 || y != 0) ? (x + ":" + y) : "";
-            string videoFilters = $"-vf \"crop={width}:{height}:{position}, scale={video.GetLQScale(width, height)}";
+            string videoFilters = $"-vf ";
+
+            if (options.shouldCrop) videoFilters += $"\"crop={width}:{height}:{position}, scale={video.GetLQScale(width, height)}";
+            else videoFilters += $"\"scale={video.GetLQScale(width, height)}";
 
             string rotateCommand = video.GetRotateCommand();
             if (rotateCommand != null)
                 videoFilters += $",transpose={rotateCommand}\"";
             else
                 videoFilters += "\"";
+
+            if (options.shouldCrop == false && rotateCommand == null) videoFilters = "";
 
             string arguments = $"-y -noaccurate_seek -copyts -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
                                $"-frames:v 1 {videoFilters} \"{savePath}\"";

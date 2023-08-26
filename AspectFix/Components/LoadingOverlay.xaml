@@ -30,7 +30,7 @@
                 <Image gif:ImageBehavior.AnimatedSource="../Images/loading.gif" 
                        Width="80"
                        Stretch="Uniform"
-                       Margin="15"/>
+                       Margin="5"/>
 
                 <!--<ProgressBar Style="{DynamicResource ProgressBarStyle1}"
                     Minimum="0"

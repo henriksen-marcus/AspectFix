@@ -79,6 +79,7 @@ namespace AspectFix
         /// <returns>The cropped dimensions and the x, y position of the video in the frame</returns>
         public (int, int, int, int) GetCroppedDimensions(CropOptions options)
         {
+            if (!options.shouldCrop) return (Width, Height, 0, 0);
             if (options.isAuto) return GetAnalyzedCroppedDimensions();
 
             CroppedWidth = Width;
