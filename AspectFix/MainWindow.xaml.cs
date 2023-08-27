@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Path = System.IO.Path;
 
 namespace AspectFix
 {
@@ -29,7 +30,7 @@ namespace AspectFix
         /// <summary>
         /// The PID of the current running process
         /// </summary>
-        public int CurrentPID { get; set; } = 0;
+        public int CurrentPID { get; set; } = -1;
 
         // ---------- Events ---------- //
         public delegate void FileProcessedEventHandler();
@@ -58,7 +59,7 @@ namespace AspectFix
         public void FileProcessed()
         {
             OnFileProcessed?.Invoke();
-            CurrentPID = 0;
+            CurrentPID = -1;
             SelectedFile = null;
         } 
 
@@ -84,12 +85,22 @@ namespace AspectFix
         {
             ExitApp();
 
-            if (CurrentPID != 0)
+            if (CurrentPID != -1)
             {
                 var process = Process.GetProcessById(CurrentPID);
                 process.Kill();
                 process.WaitForExit();
                 if (process.HasExited == false) ErrorMessage("Could not close ffmpeg. PID: " + CurrentPID);
+                else
+                {
+                    // Delete the leftover corrupt file
+                    try
+                    {
+                        string newpath = Path.Combine(Path.GetDirectoryName(SelectedFile.Path), SelectedFile.FileName + ".cropped" + SelectedFile.Extension);
+                        File.Delete(newpath);
+                    }
+                    catch { }
+                }
             }
             
             Application.Current.Shutdown();
