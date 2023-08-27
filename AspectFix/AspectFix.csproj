@@ -50,7 +50,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>AspectFix_64.ico</ApplicationIcon>
+    <ApplicationIcon>AspectFixLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationFramework.Aero2" />
@@ -187,12 +187,6 @@
     </Resource>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="AspectFix_256.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="AspectFix_64.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4.7.2 %28x86 and x64%29</ProductName>
@@ -226,6 +220,9 @@
     <Resource Include="Images\arrow_left.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="AspectFixLogo.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
