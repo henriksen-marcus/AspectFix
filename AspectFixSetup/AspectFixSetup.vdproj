@@ -110,6 +110,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
         "Release"
@@ -402,7 +410,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:AspectFix"
         "ProductCode" = "8:{109AA992-8259-4156-BC90-756303395176}"
-        "PackageCode" = "8:{449A1D9D-6BE8-4736-A099-2FABB03046CF}"
+        "PackageCode" = "8:{24C692DA-8BC5-4DF5-975C-3B1F9022530C}"
         "UpgradeCode" = "8:{237D92E5-61C1-421E-BB46-925CAADE4371}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"

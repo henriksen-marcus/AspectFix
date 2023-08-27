@@ -29,16 +29,19 @@ namespace AspectFix
         {
             var output = Runffprobe($"-v error -select_streams v -show_entries stream=width,height -of csv=p=0:s=x \"{videoPath}\"");
 
-            // Parse the output to retrieve the width and height values
-            string[] dimensions = output.Trim().Split('x');
-
             try
             {
+                // Parse the output to retrieve the width and height values
+                string[] dimensions = output.Trim().Split('x');
+
                 int width = int.Parse(dimensions[0]);
                 int height = int.Parse(dimensions[1]);
                 return (width, height);
             }
-            catch (Exception e) { }
+            catch (Exception e)
+            {
+                MainWindow.Instance.ErrorMessage($"GetVideoDimensions(): {e.Message}");
+            }
 
             return (0, 0);
         }
@@ -85,7 +88,7 @@ namespace AspectFix
             GC.Collect();
             File.Delete(path);
 
-            Console.WriteLine($"Left: {left}, Top: {top}, Right: {right}, Bottom: {bottom}");
+            //Console.WriteLine($"Left: {left}, Top: {top}, Right: {right}, Bottom: {bottom}");
             return (left, top, right, bottom);
         }
 
@@ -173,7 +176,6 @@ namespace AspectFix
         public static string GetCroppedPreviewImage(VideoFile video, CropOptions options)
         {
             (int width, int height, int x, int y) = video.GetCroppedDimensions(options);
-
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_new.jpg");
             string position = (x != 0 || y != 0) ? (x + ":" + y) : "";
             string videoFilters = $"-vf ";
@@ -211,7 +213,7 @@ namespace AspectFix
 
             Process process = new Process();
             process.StartInfo = startInfo;
-            //int exitCode;
+            int exitCode = 1;
             string output = "";
 
             try
@@ -226,8 +228,21 @@ namespace AspectFix
             }
             finally
             {
-                //exitCode = process.ExitCode;
+                try
+                {
+                    exitCode = process.ExitCode;
+                }
+                catch { }
+
                 process.Close();
+            }
+
+            if (debugEnabled)
+            {
+                Console.WriteLine(output);
+                Console.WriteLine("Exit code: " + exitCode);
+                MainWindow.Instance.ErrorMessage("Runffprobe output: " + output);
+                MainWindow.Instance.ErrorMessage("Runffprobe exit code: " + exitCode);
             }
 
             return output;
@@ -239,25 +254,30 @@ namespace AspectFix
             startInfo.FileName = ffmpegPath;
             startInfo.Arguments = arguments;
             startInfo.RedirectStandardOutput = debugEnabled;
+            startInfo.RedirectStandardError = debugEnabled;
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;
+
+            //MainWindow.Instance.ErrorMessage("FFMPEG ARGUMENTS: " +arguments);
 
             // Start the process
             Process process = new Process();
             process.StartInfo = startInfo;
             int exitCode = 1;
             string output = null;
+            string err = null;
 
             try
             {
                 process.Start();
                 MainWindow.Instance.CurrentPID = process.Id;
                 output = debugEnabled ? process.StandardOutput.ReadToEnd() : null;
+                err = debugEnabled ? process.StandardError.ReadToEnd() : null;
                 process.WaitForExit();
             }
             catch (Exception e)
             {
-                MainWindow.Instance.ErrorMessage(e.Message);
+                MainWindow.Instance.ErrorMessage("Runffmpeg catch: " + e.Message);
             }
             finally
             {
@@ -269,12 +289,17 @@ namespace AspectFix
                 
                 // Clean up the process
                 process.Close();
+
+                MainWindow.Instance.CurrentPID = -1;
             }
 
             if (debugEnabled)
             {
                 Console.WriteLine(output);
                 Console.WriteLine("Exit code: " + exitCode);
+                MainWindow.Instance.ErrorMessage("Runffmpeg output: " + output);
+                MainWindow.Instance.ErrorMessage("Runffmpeg error: " + err);
+                MainWindow.Instance.ErrorMessage("Runffmpeg exit code: " + exitCode);
             }
             
             return exitCode == 0;
@@ -329,7 +354,7 @@ namespace AspectFix
             {
                 frameTime = Lerp(0, video.Length, i / 3.0);
                 string arguments =
-                    $"-y -noaccurate_seek -copyts -ss {frameTime.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\" -frames:v 1 {savePath}";
+                    $"-y -noaccurate_seek -copyts -ss {frameTime.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\" -frames:v 1 \"{savePath}\"";
 
                 Runffmpeg(arguments);
 

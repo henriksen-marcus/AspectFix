@@ -48,11 +48,14 @@ namespace AspectFix
                 return;
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             string filename = System.IO.Path.GetFileName(files[0]);
-            FileNameTextBlock.Text = FileProcessor.ShortenString(filename, 24);
-            MainWindow.Instance.SetSelectedFile(files[0]);
-            RemoveFileButton.Visibility = Visibility.Visible;
 
-            if (CheckFile(files[0])) ContinueButton.IsEnabled = true;
+            if (CheckFile(files[0]))
+            {
+                ContinueButton.IsEnabled = true;
+                FileNameTextBlock.Text = FileProcessor.ShortenString(filename, 24);
+                MainWindow.Instance.SetSelectedFile(files[0]);
+                RemoveFileButton.Visibility = Visibility.Visible;
+            }
         }
 
         public void ToggleDrop()

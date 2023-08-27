@@ -95,7 +95,7 @@ namespace AspectFix
                 }
                 ImagePreviewNew.Source = _newPreview;
             }
-            else MainWindow.Instance.ErrorMessage("Failed to generate preview image.");
+            else MainWindow.Instance.ErrorMessage("Failed to generate preview image, newPreviewPath was null.");
         }
 
         /// <summary>
