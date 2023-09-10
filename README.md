@@ -7,7 +7,7 @@
 
 ##
 #### ⚡ Ever wanted to quickly remove black bars or just simply rotate a video? <br>
-Aspectfix is a simple, lightweight tool for cropping and rotating videos. Forget about waiting minutes on a heavy-weight editing application to start up, or having to scour though websites that force you to create an account. AspectFix is easy to use and has no learning curve.
+AspectFix is a simple, lightweight tool for cropping and rotating videos. Forget about waiting minutes on a heavy-weight editing application to start up, or having to scour though websites that force you to create an account. AspectFix is easy to use and has no learning curve.
 <br><br>
 ## 📦️ Installation
 Head over to [Releases](https://github.com/henriksen-marcus/AspectFix/releases/) and download the windows installer there.<br><br>
