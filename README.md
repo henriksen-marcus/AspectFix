@@ -17,7 +17,7 @@ Head over to [Releases](https://github.com/henriksen-marcus/AspectFix/releases/)
 - If you find any bugs then feel free to report them [here](https://github.com/henriksen-marcus/AspectFix/issues).
 
 ## Development
-- This project was made using WPF, and therefore is only avaiable on **Windows**
+- This project was made using WPF, and therefore is only available on **Windows**
 - Utilizes ffmpeg for video editing
 
 I'm happy to look over any *pull requests* to this repository. To get started, make sure you have the `.NET desktop development` package installed in Visual Studio.
