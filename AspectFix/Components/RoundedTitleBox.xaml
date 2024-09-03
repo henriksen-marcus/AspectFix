@@ -16,7 +16,7 @@
         <TextBlock Text="{Binding Title, ElementName=Root}"
                    Foreground="White"
                    FontSize="16"
-                   Margin="10 0 10 0"
+                   Margin="10 0 14 0"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Center"/>
     </Border>

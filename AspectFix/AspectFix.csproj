@@ -117,6 +117,9 @@
     <Compile Include="Components\RoundedImageButton.xaml.cs">
       <DependentUpon>RoundedImageButton.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TrimPage.xaml.cs">
+      <DependentUpon>TrimPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="VideoFile.cs" />
     <Compile Include="Components\RoundedTitleBox.xaml.cs">
       <DependentUpon>RoundedTitleBox.xaml</DependentUpon>
@@ -140,6 +143,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\ProgressBarStyle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TrimPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -223,6 +230,16 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="AspectFixLogo.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\cut.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pause.png" />
+    <Resource Include="Images\play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\trim.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -30,7 +30,7 @@
                 <RowDefinition Height="35"/>
                 <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
-			<components:RoundedTitleBox Title="Original:"
+			<components:RoundedTitleBox Title="Original"
 			                            Margin="0 0 0 4"/>
 	        <Image x:Name="ImagePreviewOld"
 	               Stretch="Uniform"
@@ -44,7 +44,7 @@
                 <RowDefinition Height="35"/>
                 <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
-            <components:RoundedTitleBox Title="Cropped:"
+            <components:RoundedTitleBox Title="Cropped"
                                         Margin="0 0 0 0"
                                         Grid.Row="0"/>
             <Image x:Name="ImagePreviewNew"

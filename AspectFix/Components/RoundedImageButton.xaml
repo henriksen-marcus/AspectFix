@@ -61,6 +61,12 @@
             MouseLeave="Button_OnMouseLeave">
         <Image Source="{Binding ImageSource, ElementName=Root}"
                Stretch="Uniform"
-               Margin="{Binding ImageMargin, ElementName=Root}"/>
+               Margin="{Binding ImageMargin, ElementName=Root}">
+            <Image.LayoutTransform>
+                <TransformGroup>
+                    <RotateTransform Angle="{Binding IconRotation, ElementName=Root}"></RotateTransform>
+                </TransformGroup>
+            </Image.LayoutTransform>
+        </Image>
     </Button>
 </UserControl>

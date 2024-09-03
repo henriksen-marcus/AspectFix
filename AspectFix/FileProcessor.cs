@@ -52,7 +52,7 @@ namespace AspectFix
             var path = GetHQPreviewImage(video);
             if (!File.Exists(path)) return (0, 0, 0, 0);
             var image = new Bitmap(path);
-            double tolerance = 0.01;
+            double tolerance = 0.08;
 
             int left = 0, top = 0, right = 0, bottom = 0;
 

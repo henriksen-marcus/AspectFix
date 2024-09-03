@@ -25,7 +25,7 @@
         CornerRadius="20"
         BorderBrush="#635e82"
         BorderThickness="2"
-        RenderOptions.EdgeMode="Unspecified"
+        RenderOptions.EdgeMode="Aliased"
         SnapsToDevicePixels="True">
 
         <Grid>

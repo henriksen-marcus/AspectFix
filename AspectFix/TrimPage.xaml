@@ -1,0 +1,169 @@
+﻿<Page x:Class="AspectFix.TrimPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:AspectFix"
+      xmlns:components="clr-namespace:AspectFix.Components"
+      mc:Ignorable="d" 
+      d:DesignHeight="575" d:DesignWidth="420"
+      Background="Transparent"
+      Title="TrimPage">
+
+    <Grid ShowGridLines="False">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.15*"/>
+            <ColumnDefinition Width="0.7*"/>
+            <ColumnDefinition Width="0.15*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.45*"/>
+            <!-- preview section -->
+            <RowDefinition Height="0.36*"/>
+            <RowDefinition Height="0.175*"/>
+            <RowDefinition Height="0.105*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0"
+          Grid.Column="1"
+          VerticalAlignment="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <Image x:Name="ImagePreviewOld"
+               Stretch="Uniform"
+               Grid.Row="1"/>
+        </Grid>
+
+        <Grid Grid.Row="1"
+          Grid.Column="1"
+          VerticalAlignment="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <Image x:Name="ImagePreviewNew"
+               Stretch="Uniform"
+               Grid.Row="1"/>
+        </Grid>
+
+        <components:RoundedImageButton x:Name="RotateLeftButton" 
+                                   Grid.Row="1"
+                                   Grid.Column="0"
+                                   Width="30"
+                                   Height="30"
+                                   ImageSource="Images/arrow_left.png"
+                                   Click="RotateLeftButton_OnClick"
+                                   Visibility="Visible"
+                                   Margin="6 35 0 0"/>
+        <components:RoundedImageButton x:Name="RotateRightButton"  
+                                   Grid.Row="1"
+                                   Grid.Column="2"
+                                   Width="30"
+                                   Height="30"
+                                   ImageSource="Images/arrow_right.png"
+                                   Click="RotateRightButton_OnClick"
+                                   Visibility="Visible"
+                                   Margin="0 35 6 0"/>
+
+        <StackPanel Grid.Row="2"
+                Grid.Column="1"
+                Orientation="Vertical"
+                Margin="0 10 0 0">
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center">
+                <StackPanel.Resources>
+                    <Style TargetType="components:RoundedImageButton">
+                        <Setter Property="Margin" Value="3 0 3 0"/>
+                    </Style>
+                </StackPanel.Resources>
+
+                <components:RoundedImageButton x:Name="PrevFrameBtn" 
+                                               Grid.Row="1"
+                                               Grid.Column="0"
+                                               Width="30"
+                                               Height="30"
+                                               IconRotation="90"
+                                               ImageSource="Images/down-arrow.png"
+                                               Visibility="Visible"/>
+                <components:RoundedImageButton x:Name="ReverseBtn"
+                                               Width="30"
+                                               Height="30"
+                                               ImageSource="Images/trim.png"
+                                               Visibility="Visible"/>
+                <components:RoundedImageButton x:Name="PlayPauseBtn"
+                                               Width="30"
+                                               Height="30"
+                                               IconRotation="-90"
+                                               ImageSource="Images/play.png"
+                                               Visibility="Visible"/>
+                <components:RoundedImageButton x:Name="CutBtn"
+                                               Width="30"
+                                               Height="30"
+                                               IconRotation="-90"
+                                               ImageSource="Images/down-arrow.png"
+                                               Visibility="Visible"/>
+
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    x:Name="IterationsPanel"
+                    Visibility="Collapsed"
+                    Margin="0 8 0 0">
+                <!--Iteration box-->
+                <Border Background="#635e82"
+                    CornerRadius="10"
+                    Height="30">
+                    <TextBlock x:Name="IterationsTextBlock"
+                           Text="Iterations: 1"
+                           Foreground="White"
+                           VerticalAlignment="Center"
+                           FontSize="16"
+                           Margin="10 0 10 0"/>
+                </Border>
+                <!--Minus button-->
+                <components:RoundedImageButton
+                Width="30"
+                Height="30"
+                Click="MinusButton_Click"
+                x:Name="MinusButton"
+                Margin="4 0 2 0"
+                ImageSource="Images/minus.png"/>
+                <!--Plus button-->
+                <components:RoundedImageButton
+                Width="30"
+                Height="30"
+                Click="PlusButton_Click"
+                x:Name="Plus"
+                Margin="2 0 2 0"
+                ImageSource="Images/plus.png"/>
+            </StackPanel>
+        </StackPanel>
+
+        <components:RoundedImageButton
+        Width="30"
+        Height="30"
+        Click="BackButton_Click"
+        x:Name="BackButton"
+        Margin="0 0 0 28"
+        Grid.Column="0"
+        Grid.Row="3"
+        ImageSource="Images/left-arrow.png"
+        ImageMargin="7 7 9 7"/>
+
+        <components:RoundedButton Width="100" 
+                              Height="30"
+                              Grid.Column="1"
+                              Grid.Row="3"
+                              Click="CropButton_Click"
+                              x:Name="CropButton"
+                              VerticalAlignment="Bottom"
+                              Margin="0 0 0 28"
+                              Text="Crop"
+                              FontSize="16"/>
+    </Grid>
+</Page>
