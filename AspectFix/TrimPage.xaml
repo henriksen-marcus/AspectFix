@@ -96,7 +96,6 @@
                 <components:RoundedImageButton x:Name="PlayPauseBtn"
                                                Width="30"
                                                Height="30"
-                                               IconRotation="-90"
                                                ImageSource="Images/play.png"
                                                Visibility="Visible"/>
                 <components:RoundedImageButton x:Name="CutBtn"
