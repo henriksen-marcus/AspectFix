@@ -43,24 +43,29 @@ namespace AspectFix
         public double Length { get; private set; }
         public double NonBlackFrame { get; private set; }
         public float AspectRatio { get; private set; }
-        public float CroppedAspectRatio
-        {
-            get => (float)Math.Max(CroppedWidth, CroppedHeight) / (float)Math.Min(CroppedWidth, CroppedHeight);
-        }
+        public float CroppedAspectRatio => (float)Math.Max(CroppedWidth, CroppedHeight) / (float)Math.Min(CroppedWidth, CroppedHeight);
         public BlackPixels BlackPixels { get; private set; }
         public int Rotation { get; private set; } = 0;
 
         public VideoFile(string path)
         {
             Path = path;
-            FileName = System.IO.Path.GetFileNameWithoutExtension(path);
-            Extension = System.IO.Path.GetExtension(path);
-            (Width, Height) = FileProcessor.GetVideoDimensions(path);
-            Length = FileProcessor.GetVideoLength(path);
-            NonBlackFrame = FileProcessor.GetNonBlackFrameTime(this);
+            FileName = System.IO.Path.GetFileNameWithoutExtension(Path);
+            Extension = System.IO.Path.GetExtension(Path);
+
+            Task.Run(async () => await InitVideoInfo());
+        }
+
+        private async Task InitVideoInfo()
+        {
+            Length = FileProcessor.GetVideoLength(Path);
+            (Width, Height) = FileProcessor.GetVideoDimensions(Path);
+
             CroppedWidth = Width;
             CroppedHeight = Height;
             AspectRatio = (float)Math.Max(Width, Height) / (float)Math.Min(Width, Height);
+
+            NonBlackFrame = FileProcessor.GetNonBlackFrameTime(this);
             var t = FileProcessor.GetBlackPixels(this);
             BlackPixels = new BlackPixels(t.Item1, t.Item2, t.Item3, t.Item4);
         }
@@ -85,7 +90,7 @@ namespace AspectFix
             CroppedWidth = Width;
             CroppedHeight = Height;
 
-            for (int i = 0; i < options.iterations; i++)
+            for (var i = 0; i < options.iterations; i++)
             {
                 // If the video is in landscape, return dimensions cropped to portrait and vice versa
                 if (CroppedOrientation == Orientation.Landscape)
