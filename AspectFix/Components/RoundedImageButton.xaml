@@ -58,10 +58,14 @@
 	        HorizontalAlignment="Stretch"
             Click="CustomButton_Click"
             MouseEnter="CustomButton_OnMouseEnter"
-            MouseLeave="Button_OnMouseLeave">
+            MouseLeave="Button_OnMouseLeave"
+            SnapsToDevicePixels="True"
+            RenderOptions.BitmapScalingMode="HighQuality">
         <Image Source="{Binding ImageSource, ElementName=Root}"
                Stretch="Uniform"
-               Margin="{Binding ImageMargin, ElementName=Root}">
+               Margin="{Binding ImageMargin, ElementName=Root}"
+               RenderOptions.BitmapScalingMode="HighQuality"
+               SnapsToDevicePixels="True">
             <Image.LayoutTransform>
                 <TransformGroup>
                     <RotateTransform Angle="{Binding IconRotation, ElementName=Root}"></RotateTransform>

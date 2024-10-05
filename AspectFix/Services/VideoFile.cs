@@ -32,6 +32,8 @@ namespace AspectFix
     public class VideoFile
     {
         public string Path { get; private set; }
+        // TODO: Implement
+        public string NewPath { get; private set; }
         public string FileName { get; private set; }
         public string Extension { get; private set; }
         public Orientation Orientation => (Width > Height) ? Orientation.Landscape : Orientation.Portrait;
@@ -42,28 +44,32 @@ namespace AspectFix
         public int CroppedHeight { get; private set; }
         public double Length { get; private set; }
         public double NonBlackFrame { get; private set; }
-        public float AspectRatio { get; private set; }
-        public float CroppedAspectRatio => (float)Math.Max(CroppedWidth, CroppedHeight) / (float)Math.Min(CroppedWidth, CroppedHeight);
+        public double AspectRatio { get; private set; }
+        public double CroppedAspectRatio => (double)Math.Max(CroppedWidth, CroppedHeight) / (double)Math.Min(CroppedWidth, CroppedHeight);
         public BlackPixels BlackPixels { get; private set; }
         public int Rotation { get; private set; } = 0;
+        public TimeSpan TrimStart { get; private set; }
+        public TimeSpan TrimEnd { get; private set; }
 
         public VideoFile(string path)
         {
             Path = path;
             FileName = System.IO.Path.GetFileNameWithoutExtension(Path);
             Extension = System.IO.Path.GetExtension(Path);
-
-            Task.Run(async () => await InitVideoInfo());
+            
+            Task.Run(InitVideoInfoAsync);
         }
 
-        private async Task InitVideoInfo()
+        private async Task InitVideoInfoAsync()
         {
+            NewPath = FileProcessor.GetNewFilePath(Path);
             Length = FileProcessor.GetVideoLength(Path);
+            TrimEnd = TimeSpan.FromSeconds(Length);
             (Width, Height) = FileProcessor.GetVideoDimensions(Path);
 
             CroppedWidth = Width;
             CroppedHeight = Height;
-            AspectRatio = (float)Math.Max(Width, Height) / (float)Math.Min(Width, Height);
+            AspectRatio = (double)Math.Max(Width, Height) / (double)Math.Min(Width, Height);
 
             NonBlackFrame = FileProcessor.GetNonBlackFrameTime(this);
             var t = FileProcessor.GetBlackPixels(this);
@@ -84,13 +90,13 @@ namespace AspectFix
         /// <returns>The cropped dimensions and the x, y position of the video in the frame</returns>
         public (int, int, int, int) GetCroppedDimensions(CropOptions options)
         {
-            if (!options.shouldCrop) return (Width, Height, 0, 0);
-            if (options.isAuto) return GetAnalyzedCroppedDimensions();
+            if (!options.ShouldCrop) return (Width, Height, 0, 0);
+            if (options.IsAuto) return GetAnalyzedCroppedDimensions();
 
             CroppedWidth = Width;
             CroppedHeight = Height;
 
-            for (var i = 0; i < options.iterations; i++)
+            for (var i = 0; i < options.Iterations; i++)
             {
                 // If the video is in landscape, return dimensions cropped to portrait and vice versa
                 if (CroppedOrientation == Orientation.Landscape)

@@ -24,7 +24,8 @@
             <RowDefinition Height="0.1*"/>
         </Grid.RowDefinitions>
 
-        <Rectangle Fill="Transparent" 
+        <Rectangle x:Name="DashedOutline"
+                   Fill="Transparent" 
                    Stroke="White" 
                    StrokeDashCap="Round"
                    StrokeThickness="3" 
@@ -63,7 +64,7 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
             <!-- File name box -->
-            <Border Background="#635e82"
+            <!--<Border Background="#635e82"
 	                CornerRadius="10"
 	                VerticalAlignment="Center">
                 <TextBlock x:Name="FileNameTextBlock" 
@@ -72,7 +73,12 @@
 		                   HorizontalAlignment="Center" 
 		                   Foreground="White"
 		                   Margin="14 3 14 3"/>
-            </Border>
+            </Border>-->
+            <components:RoundedTitleBox x:Name="FileNameTextBlock"
+                                        Title="No file selected"
+                                        MaxLength="25"
+                                        HorizontalAlignment="Center"
+                                        Margin="0 4 4 0" />
             <!-- X Button -->
             <Button x:Name="RemoveFileButton"
 					Background="Transparent"
@@ -91,7 +97,7 @@
                         <Border Background="{TemplateBinding Background}"
 						        BorderBrush="{TemplateBinding BorderBrush}"
 						        BorderThickness="{TemplateBinding BorderThickness}"
-						        SnapsToDevicePixels="True">
+						        SnapsToDevicePixels="False">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </ControlTemplate>
@@ -102,6 +108,23 @@
 				       Stretch="Uniform"/>
             </Button>
         </StackPanel>
+
+        <ItemsControl x:Name="RecentFilesList"
+                  Grid.Column="1"
+                  Grid.Row="2"
+                  Margin="0 20 0 20"
+                  HorizontalAlignment="Center"
+                  Background="Transparent"
+                  BorderBrush="Transparent"
+                  ItemsSource="{Binding RecentFiles}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel HorizontalAlignment="Center" Margin="2">
+                        <components:RoundedTitleBox Title="{Binding}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
         <!-- Continue button -->
         <components:RoundedButton x:Name="ContinueButton"

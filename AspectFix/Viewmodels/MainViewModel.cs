@@ -11,7 +11,7 @@ namespace AspectFix
         private BaseViewModel _selectedViewModel;
         public BaseViewModel SelectedViewModel
         {
-            get { return _selectedViewModel; }
+            get => _selectedViewModel;
             set
             {
                 _selectedViewModel = value;

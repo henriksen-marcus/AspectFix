@@ -9,6 +9,7 @@ using System.Windows;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Media.Media3D;
+using AspectFix.Views;
 
 namespace AspectFix
 {
@@ -16,14 +17,44 @@ namespace AspectFix
     {
         public struct CropOptions
         {
-            public bool isAuto;
-            public bool shouldCrop;
-            public int iterations;
+            public bool IsAuto;
+            public bool ShouldCrop;
+            public int Iterations;
+
+            // Operator overloads
+            public static bool operator == (CropOptions a, CropOptions b)
+            {
+                return a.IsAuto == b.IsAuto && a.ShouldCrop == b.ShouldCrop && a.Iterations == b.Iterations;
+            }
+
+            public static bool operator !=(CropOptions a, CropOptions b) => !(a == b);
+
+            public bool Equals(CropOptions other)
+            {
+                return IsAuto == other.IsAuto && ShouldCrop == other.ShouldCrop && Iterations == other.Iterations;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is CropOptions other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hashCode = IsAuto.GetHashCode();
+                    hashCode = (hashCode * 397) ^ ShouldCrop.GetHashCode();
+                    hashCode = (hashCode * 397) ^ Iterations;
+                    return hashCode;
+                }
+            }
         }
 
-        private static string ffmpegPath = "ffmpeg.exe";
-        private static string ffprobePath = "ffprobe.exe";
-        private static bool debugEnabled = false;
+        private const string ffmpegPath = "ffmpeg.exe";
+        private const string ffprobePath = "ffprobe.exe";
+        private const bool DebugEnabled = false;
+        private const string FilenameAddition = "aspectfix";
 
         public static (int, int) GetVideoDimensions(string videoPath)
         {
@@ -31,8 +62,15 @@ namespace AspectFix
 
             try
             {
+                Trace.WriteLine(output);
+                string firstLine = output.Split('\n')[0];
+                Trace.WriteLine(firstLine);
+
                 // Parse the output to retrieve the width and height values
-                string[] dimensions = output.Trim().Split('x');
+                string[] dimensions = firstLine.Trim().Split('x');
+
+                foreach (string i in dimensions )
+                    Trace.WriteLine(i);
 
                 int width = int.Parse(dimensions[0]);
                 int height = int.Parse(dimensions[1]);
@@ -40,7 +78,7 @@ namespace AspectFix
             }
             catch (Exception e)
             {
-                MainWindow.Instance.ErrorMessage($"GetVideoDimensions(): {e.Message}");
+                MainWindow.Instance.ErrorMessage($"Error in GetVideoDimensions(): {e.Message}");
             }
 
             return (0, 0);
@@ -105,7 +143,7 @@ namespace AspectFix
             }
             catch (Exception e)
             {
-                MainWindow.Instance.ErrorMessage(e.Message);
+                MainWindow.Instance.ErrorMessage("Exception: " + e.Message);
             }
 
             return length;
@@ -115,7 +153,48 @@ namespace AspectFix
         /// Runs the crop and rotate operations on a copy of the video
         /// </summary>
         /// <returns>Path to the successfully processed video file, else null</returns>
+        //public static string Crop(VideoFile video, CropOptions options)
+        //{
+        //    (int width, int height, int x, int y) = video.GetCroppedDimensions(options);
+
+        //    string newFileName = $"{video.FileName}.cropped{video.Extension}";
+        //    string newFilePath = Path.Combine(Path.GetDirectoryName(video.Path), newFileName);
+        //    string position = (x != 0 || y != 0) ? (x + ":" + y) : null;
+        //    string videoFilters = $"-filter:v ";
+
+        //    if (options.shouldCrop)
+        //    {
+        //        videoFilters += $"\"crop={width}:{height}";
+        //        if (position != null) videoFilters += $":{position},";
+        //        else videoFilters += ",";
+        //    }
+        //    else videoFilters += $"\"";
+
+        //    string rotateCommand = video.GetRotateCommand();
+        //    if (rotateCommand != null)
+        //        videoFilters += $"transpose={rotateCommand}\"";
+        //    else
+        //        videoFilters += "\"";
+
+        //    if (options.shouldCrop == false && rotateCommand == null) videoFilters = "";
+
+        //    // Saves to the same location as original file
+        //    string arguments = $"-y -i \"{video.Path}\" {videoFilters} -c:a copy \"{newFilePath}\"";
+        //    var success = Runffmpeg(arguments);
+
+        //    return File.Exists(newFilePath) ? newFilePath : null;
+        //}
+
         public static string Crop(VideoFile video, CropOptions options)
+        {
+            Runffmpeg(FFmpegCommand.Build(video, options));
+
+            Trace.WriteLine("Process:   " + FFmpegCommand.Build(video, options));
+
+            return File.Exists(video.NewPath) ? video.NewPath : null;
+        }
+
+        public static void CropPrint(VideoFile video, CropOptions options)
         {
             (int width, int height, int x, int y) = video.GetCroppedDimensions(options);
 
@@ -124,7 +203,7 @@ namespace AspectFix
             string position = (x != 0 || y != 0) ? (x + ":" + y) : null;
             string videoFilters = $"-filter:v ";
 
-            if (options.shouldCrop)
+            if (options.ShouldCrop)
             {
                 videoFilters += $"\"crop={width}:{height}";
                 if (position != null) videoFilters += $":{position},";
@@ -138,13 +217,11 @@ namespace AspectFix
             else
                 videoFilters += "\"";
 
-            if (options.shouldCrop == false && rotateCommand == null) videoFilters = "";
+            if (options.ShouldCrop == false && rotateCommand == null) videoFilters = "";
 
             // Saves to the same location as original file
             string arguments = $"-y -i \"{video.Path}\" {videoFilters} -c:a copy \"{newFilePath}\"";
-            var success = Runffmpeg(arguments);
-
-            return File.Exists(newFilePath) ? newFilePath : null;
+            Trace.WriteLine(arguments);
         }
 
         /// <returns>Path to a low resolution, uncropped, non-black frame of the video. May be null
@@ -180,7 +257,7 @@ namespace AspectFix
             string position = (x != 0 || y != 0) ? (x + ":" + y) : "";
             string videoFilters = $"-vf ";
 
-            if (options.shouldCrop) videoFilters += $"\"crop={width}:{height}:{position}, scale={video.GetLQScale(width, height)}";
+            if (options.ShouldCrop) videoFilters += $"\"crop={width}:{height}:{position}";//, scale={video.GetLQScale(width, height)}";
             else videoFilters += $"\"scale={video.GetLQScale(width, height)}";
 
             string rotateCommand = video.GetRotateCommand();
@@ -189,7 +266,7 @@ namespace AspectFix
             else
                 videoFilters += "\"";
 
-            if (options.shouldCrop == false && rotateCommand == null) videoFilters = "";
+            if (options.ShouldCrop == false && rotateCommand == null) videoFilters = "";
 
             string arguments = $"-y -noaccurate_seek -copyts -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
                                $"-frames:v 1 {videoFilters} \"{savePath}\"";
@@ -224,7 +301,7 @@ namespace AspectFix
             }
             catch (Exception ex)
             {
-                MainWindow.Instance.ErrorMessage(ex.Message);
+                MainWindow.Instance.ErrorMessage("Exception: " + ex.Message);
             }
             finally
             {
@@ -237,7 +314,7 @@ namespace AspectFix
                 process.Close();
             }
 
-            if (debugEnabled)
+            if (DebugEnabled)
             {
                 Console.WriteLine(output);
                 Console.WriteLine("Exit code: " + exitCode);
@@ -253,8 +330,8 @@ namespace AspectFix
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = ffmpegPath;
             startInfo.Arguments = arguments;
-            startInfo.RedirectStandardOutput = debugEnabled;
-            startInfo.RedirectStandardError = debugEnabled;
+            startInfo.RedirectStandardOutput = DebugEnabled;
+            startInfo.RedirectStandardError = DebugEnabled;
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;
 
@@ -271,8 +348,8 @@ namespace AspectFix
             {
                 process.Start();
                 MainWindow.Instance.CurrentPID = process.Id;
-                output = debugEnabled ? process.StandardOutput.ReadToEnd() : null;
-                err = debugEnabled ? process.StandardError.ReadToEnd() : null;
+                output = DebugEnabled ? process.StandardOutput.ReadToEnd() : null;
+                err = DebugEnabled ? process.StandardError.ReadToEnd() : null;
                 process.WaitForExit();
             }
             catch (Exception e)
@@ -293,13 +370,13 @@ namespace AspectFix
                 MainWindow.Instance.CurrentPID = -1;
             }
 
-            if (debugEnabled)
+            if (DebugEnabled)
             {
-                Console.WriteLine(output);
-                Console.WriteLine("Exit code: " + exitCode);
-                MainWindow.Instance.ErrorMessage("Runffmpeg output: " + output);
-                MainWindow.Instance.ErrorMessage("Runffmpeg error: " + err);
-                MainWindow.Instance.ErrorMessage("Runffmpeg exit code: " + exitCode);
+                Trace.WriteLine(output);
+                Trace.WriteLine("Exit code: " + exitCode);
+                //MainWindow.Instance.ErrorMessage("Runffmpeg output: " + output);
+                //MainWindow.Instance.ErrorMessage("Runffmpeg error: " + err);
+                //MainWindow.Instance.ErrorMessage("Runffmpeg exit code: " + exitCode);
             }
             
             return exitCode == 0;
@@ -326,8 +403,42 @@ namespace AspectFix
 
             // Supported extensions by ffmpeg
             string[] supportedVideoTypes = {
-                ".3g2", ".3gp", ".asf", ".avi", ".flv", ".m2v", ".m4v", ".mkv", ".mov", ".mp4",
-                ".mpeg", ".mpg", ".rm", ".swf", ".vob", ".webm", ".wmv"
+                ".mp4",    // MPEG-4 Part 14
+                ".m4v",    // MPEG-4 Part 14 (iTunes Video)
+                ".mpeg",   // MPEG-2 Video
+                ".mpg",    // MPEG-1
+                ".m2v",    // MPEG-2 Video
+                ".mkv",    // Matroska
+                ".webm",   // WebM
+                ".vob",    // DVD Video Object
+                ".ts",     // MPEG Transport Stream
+                ".m2ts",   // MPEG-2 Transport Stream (Blu-ray)
+                ".mts",    // AVCHD MPEG-2 Transport Stream
+                ".3gp",    // 3GPP Video
+                ".3g2",    // 3GPP2 Video
+
+                // QuickTime / Apple formats
+                ".mov",    // QuickTime Movie
+                ".qt",     // QuickTime File
+
+                // AVI formats
+                ".avi",    // Audio Video Interleave
+                ".divx",   // DivX Video
+                ".xvid",   // Xvid Video
+
+                // Windows Media formats
+                ".wmv",    // Windows Media Video
+                ".asf",    // Advanced Systems Format
+
+                // Flash formats
+                ".flv",    // Flash Video
+                ".f4v",    // Flash MP4 Video
+
+                // Ogg / OGM formats
+                ".ogv",    // Ogg Video
+                ".ogg",    // Ogg Media
+                ".ogm",
+                ".gif"
             };
 
             // Compare the file extension (ignoring case)
@@ -370,6 +481,84 @@ namespace AspectFix
             }
 
             return video.Length / 2;
+        }
+
+        public static double GetVideoBitrate(string path)
+        {
+            var output = Runffprobe($"-v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 \"{path}\"");
+
+            // Parse output to double (bitrate is returned in bits per second, converting to kbps)
+            if (double.TryParse(output, out double bitrate))
+            {
+                return bitrate / 1000; // Return bitrate in kbps
+            }
+            else
+            {
+                throw new Exception("Failed to retrieve video bitrate.");
+            }
+        }
+
+        public static double GetAudioBitrate(string path)
+        {
+            var output = Runffprobe($"-v error -select_streams a:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 \"{path}\"");
+
+            // Parse output to double (bitrate is returned in bits per second, converting to kbps)
+            if (double.TryParse(output, out double bitrate))
+            {
+                return bitrate / 1000; // Return bitrate in kbps
+            }
+            else
+            {
+                throw new Exception("Failed to retrieve audio bitrate.");
+            }
+        }
+
+        /// <summary>
+        /// Returns a new unique name to the given file.
+        /// </summary>
+        public static string GetNewFilePath(string path)
+        {
+            string GetName(string addition)
+            {
+                return Path.Combine(Path.GetDirectoryName(path) ?? string.Empty,
+                    Path.GetFileNameWithoutExtension(path) + "." + addition + Path.GetExtension(path));
+            }
+
+            string finalName = path;
+
+            // If already processed and contains the addition
+            if (path.Contains(FilenameAddition + Path.GetExtension(path)))
+            {
+                path = path.Replace("." + FilenameAddition, "");
+
+                // Prevent overwriting of previously processed files
+                for (int i = 2; i < 100; i++)
+                {
+                    if (File.Exists(finalName))
+                    {
+                        finalName = GetName($".{FilenameAddition}_" + i);
+                    }
+                    else break;
+                }
+
+                // if you got to this point, what the fuck
+                if (File.Exists(finalName))
+                {
+                    Random rand = new Random();
+                    string addition = "";
+
+                    for (int i = 0; i < 10; i++)
+                        addition += rand.Next(0, 9);
+
+                    finalName = GetName($".{FilenameAddition}_" + addition);
+                }
+            }
+            else
+            {
+                finalName = GetName(FilenameAddition);
+            }
+
+            return finalName;
         }
     }
 }

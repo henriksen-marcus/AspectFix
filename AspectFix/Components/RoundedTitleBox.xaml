@@ -5,18 +5,22 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AspectFix.Components"
              mc:Ignorable="d" 
-             d:DesignHeight="40" 
-             d:DesignWidth="100"
-             x:Name="Root">
-    <Border Background="#635e82"
+             SnapsToDevicePixels="True"
+             UseLayoutRounding="True"
+             x:Name="Root"
+             >
+    <Border x:Name="ClickBorder"
+            Background="#635e82"
             CornerRadius="10"
             HorizontalAlignment="Left"
-            MinWidth="70"
-            Height="28">
-        <TextBlock Text="{Binding Title, ElementName=Root}"
+            MinWidth="50"
+            Height="28"
+            SnapsToDevicePixels="True">
+        <TextBlock x:Name="TitleBox" 
+                   Text="{Binding Title, ElementName=Root}"
                    Foreground="White"
                    FontSize="16"
-                   Margin="10 0 14 0"
+                   Margin="10 0 10 0"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Center"/>
     </Border>

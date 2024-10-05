@@ -5,18 +5,18 @@ using System.Windows;
 using System.Windows.Input;
 using Path = System.IO.Path;
 
-namespace AspectFix
+namespace AspectFix.Views
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        public MainViewModel Viewmodel;
-        public VideoFile SelectedFile { get; private set; }
-        public static MainWindow Instance { get; private set; }
+        public MainViewModel MainViewModel  { get; private set; }
+        public HomeViewModel HomeViewModel { get; private set; }
+        public EditViewModel EditViewModel  { get; private set; }
+        public VideoFile SelectedFile       { get; private set; }
+        public static MainWindow Instance   { get; private set; }
+
         /// <summary>
-        /// The PID of the current running process
+        /// The PID of the current running process.
         /// </summary>
         public int CurrentPID { get; set; } = -1;
 
@@ -34,8 +34,10 @@ namespace AspectFix
         {
             InitializeComponent();
             Instance = this;
-            Viewmodel = new MainViewModel();
-            DataContext = Viewmodel;
+            MainViewModel = new MainViewModel();
+            HomeViewModel = (HomeViewModel)MainViewModel.SelectedViewModel;
+            EditViewModel = new EditViewModel();
+            DataContext = MainViewModel;
 
             if (!File.Exists("ffmpeg.exe") || !File.Exists("ffprobe.exe"))
             {
@@ -52,7 +54,6 @@ namespace AspectFix
         } 
 
         public void ExitApp() => OnExitApp?.Invoke();
-        public void ToggleDragOverlay(bool isValidFile) => OnToggleDragOverlay?.Invoke(isValidFile);
 
         public void SetSelectedFile(string path)
         {
@@ -98,15 +99,20 @@ namespace AspectFix
         {
             LoadingOverlay.Visibility = LoadingOverlay.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
             MainGridOverlay.Visibility = LoadingOverlay.Visibility;
-            //MainBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#656500"));
         }
 
         public void ChangeView(string viewName)
         {
-            if (viewName == "Home")
-                Viewmodel.SelectedViewModel = new HomeViewModel();
-            else if (viewName == "Edit")
-                Viewmodel.SelectedViewModel = new EditViewModel();
+            switch (viewName)
+            {
+                case "Home":
+                    MainViewModel.SelectedViewModel = HomeViewModel;
+                    //DataContext = new HomeViewModel();
+                    break;
+                case "Edit":
+                    MainViewModel.SelectedViewModel = EditViewModel;
+                    break;
+            }
 
             GC.Collect();
         }

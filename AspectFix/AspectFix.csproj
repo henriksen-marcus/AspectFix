@@ -2,6 +2,7 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <LangVersion>latest</LangVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{774027CC-D3D9-401A-8BF7-478441371614}</ProjectGuid>
@@ -48,12 +49,16 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>AspectFixLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationFramework.Aero2" />
+    <Reference Include="SciChart.Wpf.UI.Transitionz, Version=3.2.268.0, Culture=neutral, PublicKeyToken=8eea68d53aa73a83, processorArchitecture=MSIL">
+      <HintPath>..\packages\SciChart.Wpf.UI.Transitionz.3.2.268\lib\net452\SciChart.Wpf.UI.Transitionz.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -78,6 +83,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Components\WindowTitleBox.xaml.cs">
+      <DependentUpon>WindowTitleBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Services\FFmpegCommand.cs" />
+    <Compile Include="Views\Window1.xaml.cs">
+      <DependentUpon>Window1.xaml</DependentUpon>
+    </Compile>
     <Page Include="Components\LoadingOverlay.xaml" />
     <Page Include="Components\RoundedButton.xaml">
       <SubType>Designer</SubType>
@@ -91,15 +103,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="EditView.xaml">
+    <Page Include="Components\WindowTitleBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EditView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="HomeView.xaml">
+    <Page Include="Views\HomeView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="MainWindow.xaml">
+    <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -107,7 +123,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="BaseViewModel.cs" />
+    <Compile Include="Viewmodels\BaseViewModel.cs" />
     <Compile Include="Components\LoadingOverlay.xaml.cs">
       <DependentUpon>LoadingOverlay.xaml</DependentUpon>
     </Compile>
@@ -117,27 +133,27 @@
     <Compile Include="Components\RoundedImageButton.xaml.cs">
       <DependentUpon>RoundedImageButton.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Timeline.xaml.cs">
+    <Compile Include="Components\Timeline.xaml.cs">
       <DependentUpon>Timeline.xaml</DependentUpon>
     </Compile>
-    <Compile Include="TrimPage.xaml.cs">
+    <Compile Include="Views\TrimPage.xaml.cs">
       <DependentUpon>TrimPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="VideoFile.cs" />
+    <Compile Include="Services\VideoFile.cs" />
     <Compile Include="Components\RoundedTitleBox.xaml.cs">
       <DependentUpon>RoundedTitleBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="EditView.xaml.cs">
+    <Compile Include="Views\EditView.xaml.cs">
       <DependentUpon>EditView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="EditViewModel.cs" />
-    <Compile Include="FileProcessor.cs" />
-    <Compile Include="HomeView.xaml.cs">
+    <Compile Include="Viewmodels\EditViewModel.cs" />
+    <Compile Include="Services\FileProcessor.cs" />
+    <Compile Include="Views\HomeView.xaml.cs">
       <DependentUpon>HomeView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="HomeViewModel.cs" />
-    <Compile Include="MainViewModel.cs" />
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="Viewmodels\HomeViewModel.cs" />
+    <Compile Include="Viewmodels\MainViewModel.cs" />
+    <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
@@ -149,11 +165,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Timeline.xaml">
+    <Page Include="Components\Timeline.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="TrimPage.xaml">
+    <Page Include="Views\TrimPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Window1.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -247,6 +267,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\trim.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\link.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
