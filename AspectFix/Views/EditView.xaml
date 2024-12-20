@@ -51,35 +51,34 @@
                                         Margin="0 0 0 0"
                                         Grid.Row="0"
                                         HorizontalAlignment="Center"/>
-            <Grid Grid.Row="1" x:Name="MyGrid" Width="{Binding ActualWidth, ElementName=ImagePreviewNew}">
-                <Grid.ColumnDefinitions>
+            <Grid Grid.Row="1" x:Name="MyGrid" >
+                <!--Width="{Binding ActualWidth, ElementName=ImagePreviewNew}"-->
+                <!--<Grid.ColumnDefinitions>
                     <ColumnDefinition Width="{Binding LeftColumnWidth, RelativeSource={RelativeSource AncestorType=local:EditView}}"/>
                     <ColumnDefinition Width="{Binding CropBarsWidth, RelativeSource={RelativeSource AncestorType=local:EditView}}"/>
                     <ColumnDefinition Width="{Binding RightColumnWidth, RelativeSource={RelativeSource AncestorType=local:EditView}}"/>
-                </Grid.ColumnDefinitions>
-                <Image x:Name="ImagePreviewNew"
-                       Stretch="Uniform"
-                       Grid.Column="0"
-                       Grid.ColumnSpan="3"/>
-                <!--Overlaying transparent bars - show cropped region-->
-                <Rectangle Grid.Column="0"
-                           Fill="Black"
-                           Opacity="0.5"
-                           Panel.ZIndex="1"/>
-                <!-- Middle section for cropping (with cursor change) -->
-                <Rectangle Grid.Column="1"
-                           Fill="Red"
-                           Opacity="0.5"
-                           Panel.ZIndex="1"
-                           Cursor="SizeWE"
-                           MouseLeftButtonDown="CropRegion_OnMouseDown"
-                           MouseMove="CropRegion_OnMouseMove"
-                           PreviewMouseLeftButtonUp="CropRegion_OnMouseUp"
-                           />
-                <Rectangle Grid.Column="2"
-                           Fill="Black"
-                           Opacity="0.5"
-                           Panel.ZIndex="1"/>
+                </Grid.ColumnDefinitions>-->
+                
+                <!--<Canvas x:Name="MainCanvas" Background="Red">
+
+                    --><!-- Image at original size --><!--
+                    <Image x:Name="ImagePreviewNew"
+                           Stretch="Uniform" Canvas.Left="0" Canvas.Top="0"/>
+                    --><!-- Crop region with resizable and draggable capability --><!--
+                    <Rectangle x:Name="CropRectangle"
+                               Stroke="Yellow"
+                               StrokeThickness="2"
+                               Fill="Transparent"
+                               Canvas.Left="50" Canvas.Top="15"
+                               Width="200" Height="100"/>
+
+                    --><!-- Resize handles (top-left, top-right, bottom-left, bottom-right) --><!--
+                    <Thumb x:Name="TopLeftHandle" Width="10" Height="10" Background="Red" Canvas.Left="45" Canvas.Top="10" DragDelta="OnResizeDrag"/>
+                    <Thumb x:Name="TopRightHandle" Width="10" Height="10" Background="Red" Canvas.Left="245" Canvas.Top="10" DragDelta="OnResizeDrag"/>
+                    <Thumb x:Name="BottomLeftHandle" Width="10" Height="10" Background="Red" Canvas.Left="45" Canvas.Top="110" DragDelta="OnResizeDrag"/>
+                    <Thumb x:Name="BottomRightHandle" Width="10" Height="10" Background="Red" Canvas.Left="245" Canvas.Top="110" DragDelta="OnResizeDrag"/>
+                </Canvas>-->
+
             </Grid>
             
         </Grid>

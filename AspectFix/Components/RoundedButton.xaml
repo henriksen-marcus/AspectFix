@@ -15,7 +15,11 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="ButtonBorder"
 					            Background="#635e82"
-					            CornerRadius="10">
+					            CornerRadius="10"
+                                SnapsToDevicePixels="True"
+                                RenderOptions.EdgeMode="Aliased"
+                                RenderOptions.BitmapScalingMode="HighQuality"
+                                UseLayoutRounding="True">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
@@ -59,5 +63,8 @@
 	        HorizontalAlignment="Stretch"
             Click="CustomButton_Click"
             MouseEnter="CustomButton_OnMouseEnter"
-            MouseLeave="Button_OnMouseLeave"/>
+            MouseLeave="Button_OnMouseLeave" SnapsToDevicePixels="True"
+            RenderOptions.EdgeMode="Aliased"
+            RenderOptions.BitmapScalingMode="HighQuality"
+            UseLayoutRounding="True"/>
 </UserControl>

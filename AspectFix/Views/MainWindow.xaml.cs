@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Input;
+using AspectFix.Services;
 using Path = System.IO.Path;
 
 namespace AspectFix.Views
@@ -44,6 +46,13 @@ namespace AspectFix.Views
                 ErrorMessage("ffmpeg or ffprobe not found. Please place ffmpeg.exe and ffprobe.exe in the same folder as AspectFix.exe.");
                 Application.Current.Shutdown();
             }
+
+            Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            //AdornerLayer.GetAdornerLayer(MyGrid).Add(new ResizeAdorner(MyBtn));
         }
 
         public void FileProcessed()

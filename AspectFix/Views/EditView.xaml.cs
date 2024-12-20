@@ -178,7 +178,7 @@ namespace AspectFix
                     _newPreview.EndInit();
                 }
 
-                ImagePreviewNew.Source = _oldPreview;//_newPreview;
+                //ImagePreviewNew.Source = _oldPreview;//_newPreview;
 
                 var w = MainWindow.Instance.SelectedFile.CroppedWidth;
                 var h = MainWindow.Instance.SelectedFile.CroppedHeight;

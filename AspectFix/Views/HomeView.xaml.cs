@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.Diagnostics;
 using System.IO;
 using AspectFix.Views;
+using System.Windows.Media.Animation;
 
 namespace AspectFix
 {
@@ -26,6 +27,15 @@ namespace AspectFix
     {
         private HomeViewModel viewModel;
         private bool _isHoldingValidFile = false;
+
+        private enum BorderAnimState
+        {
+            None,
+            Receive,
+            Deny
+        }
+
+        private BorderAnimState _borderAnimState = BorderAnimState.None;
 
         public HomeView()
         {
@@ -79,6 +89,9 @@ namespace AspectFix
         {
             if (!_isHoldingValidFile) return;
 
+            RunAnim("DashBorderDrop");
+            _borderAnimState = BorderAnimState.None;
+
             ContinueButton.IsEnabled = true;
             FileNameTextBlock.Title = MainWindow.Instance.SelectedFile.Path;
             RemoveFileButton.Visibility = Visibility.Visible;
@@ -87,37 +100,78 @@ namespace AspectFix
         private void DropBorder_OnDragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop) == false)
+            {
+                RunAnim("DashBorderDeny");
+                _borderAnimState = BorderAnimState.Deny;
                 return;
+            }
 
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files != null)
             {
                 string filename = System.IO.Path.GetFileName(files[0]);
 
-                if (!ValidateFile(files[0])) return;
+                if (!ValidateFile(files[0]))
+                {
+                    RunAnim("DashBorderDeny");
+                    _borderAnimState = BorderAnimState.Deny;
+                    return;
+                }
 
-                DashedOutline.Stroke = new SolidColorBrush(Color.FromRgb(50, 205, 50));
+                RunAnim("DashBorderEnter");
+                _borderAnimState = BorderAnimState.Receive;
+
                 MainWindow.Instance.SetSelectedFile(files[0]);
                 _isHoldingValidFile = true;
             }
-            else MainWindow.Instance.ErrorMessage("Couldn't retrieve any files.");
+            else
+            {
+                RunAnim("DashBorderDeny");
+                _borderAnimState = BorderAnimState.Deny;
+                MainWindow.Instance.ErrorMessage("Couldn't retrieve any files.");
+            }
         }
-
         private void DropBorder_OnMouseLeave(object sender, MouseEventArgs e)
         {
-            DropBorder.AllowDrop = true;
-            DashedOutline.Stroke = new SolidColorBrush(Colors.White);
+            //DropBorder.AllowDrop = true;
+            //DashedOutline.Stroke = new SolidColorBrush(Colors.White);
         }
 
         private void DropBorder_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            DropBorder.AllowDrop = true;
-            DashedOutline.Stroke = new SolidColorBrush(Colors.White);
+            //DropBorder.AllowDrop = true;
+            //DashedOutline.Stroke = new SolidColorBrush(Colors.White);
+        }
+        private void DropBorder_LostMouseCapture(object sender, MouseEventArgs e)
+        {
+            //DropBorder.AllowDrop = true;
+            //DashedOutline.Stroke = new SolidColorBrush(Colors.White);
         }
 
         //private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         //{
         //    viewModel.AddFile("Hello there...");
         //}
+        private void DropBorder_OnDragLeave(object sender, DragEventArgs e)
+        {
+            switch (_borderAnimState)
+            {
+                case BorderAnimState.Receive:
+                    RunAnim("DashBorderClear");
+                    break;
+                case BorderAnimState.Deny:
+                    RunAnim("DashBorderClearDeny");
+                    break;
+                default:
+                    break;
+            }
+
+            _borderAnimState = BorderAnimState.None;
+        }
+        private void RunAnim(string name)
+        {
+            Storyboard sb = this.FindResource(name) as Storyboard;
+            if (sb != null) { BeginStoryboard(sb); }
+        }
     }
 }
