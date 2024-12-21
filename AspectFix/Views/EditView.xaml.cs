@@ -56,67 +56,6 @@ namespace AspectFix
             UpdateCropButton();
         }
 
-
-        public static readonly DependencyProperty CropBarsWidthProperty =
-            DependencyProperty.Register(nameof(CropBarsWidth), typeof(double), typeof(EditView),
-                new PropertyMetadata(50.0, OnCropBarsWidthChanged));
-
-        // Property accessor
-        public double CropBarsWidth
-        {
-            get => (double)GetValue(CropBarsWidthProperty);
-            set => SetValue(CropBarsWidthProperty, value);
-        }
-
-        private static void OnCropBarsWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            // Handle property changes, if needed (e.g., trigger UI updates or logging)
-            var mainWindow = d as MainWindow;
-            double newValue = (double)e.NewValue;
-            Trace.WriteLine($"CropBarsWidth changed to: {newValue}");
-        }
-
-        public static readonly DependencyProperty LeftColumnWidthProperty =
-            DependencyProperty.Register(nameof(LeftColumnWidth), typeof(GridLength), typeof(EditView),
-                new PropertyMetadata(new GridLength(50, GridUnitType.Pixel)));
-
-        public static readonly DependencyProperty RightColumnWidthProperty =
-            DependencyProperty.Register(nameof(RightColumnWidth), typeof(GridLength), typeof(EditView),
-                new PropertyMetadata(new GridLength(50, GridUnitType.Pixel)));
-
-        public GridLength LeftColumnWidth
-        {
-            get => (GridLength)GetValue(LeftColumnWidthProperty);
-            set => SetValue(LeftColumnWidthProperty, value);
-        }
-
-        public GridLength RightColumnWidth
-        {
-            get => (GridLength)GetValue(RightColumnWidthProperty);
-            set => SetValue(RightColumnWidthProperty, value);
-        }
-
-        // Tracking movement distance
-        public double CropMovement { get; private set; }
-
-        private bool _isDragging = false;
-        private Point _startPoint;
-
-        private void MoveCropRegion(double delta)
-        {
-            CropMovement += delta;
-            double newLeftWidth = LeftColumnWidth.Value + delta;
-            double newRightWidth = RightColumnWidth.Value - delta;
-
-            if (newLeftWidth >= 0 && newRightWidth >= 0)
-            {
-                LeftColumnWidth = new GridLength(newLeftWidth, GridUnitType.Pixel);
-                RightColumnWidth = new GridLength(newRightWidth, GridUnitType.Pixel);
-            }
-        }
-
-
-
         public void InitPreviews()
         {
             string oldPreviewPath = FileProcessor.GetPreviewImage(MainWindow.Instance.SelectedFile);
@@ -139,6 +78,7 @@ namespace AspectFix
             var w = MainWindow.Instance.SelectedFile.Width;
             var h = MainWindow.Instance.SelectedFile.Height;
             OriginalTitle.Title = "Original " + w + "x" + h;
+
             UpdatePreview();
         }
 
@@ -178,22 +118,11 @@ namespace AspectFix
                     _newPreview.EndInit();
                 }
 
-                //ImagePreviewNew.Source = _oldPreview;//_newPreview;
+                ImagePreviewNew.Source = _newPreview;
 
                 var w = MainWindow.Instance.SelectedFile.CroppedWidth;
                 var h = MainWindow.Instance.SelectedFile.CroppedHeight;
                 CroppedTitle.Title = "Cropped " + w + "x" + h;
-
-                // Update the crop preview regions to reflect the actual new processed image's aspect ratio
-                // Defer layout calculations using Dispatcher to ensure layout pass is complete
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    var actualAspectRatio = Math.Max(_newPreview.Width, _newPreview.Height) / Math.Min(_newPreview.Width, _newPreview.Height);
-                    var gridHeight = ((Grid)this.FindName("MyGrid")).ActualHeight;
-                    var newWidth = gridHeight / actualAspectRatio;
-                    CropBarsWidth = newWidth;
-
-                }), System.Windows.Threading.DispatcherPriority.Loaded);
             }
             else MainWindow.Instance.ErrorMessage("Failed to generate preview image :(");
         }
@@ -427,50 +356,6 @@ namespace AspectFix
             double estimatedSizeInMegabytes = estimatedSizeInBytes / (1024 * 1024);
 
             return estimatedSizeInMegabytes;
-        }
-
-        private Rectangle draggedRectangle;
-        private void CropRegion_OnMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            _isDragging = true;
-            _startPoint = e.GetPosition(MyGrid); // Get the mouse starting position
-            Mouse.Capture((UIElement)sender); // Capture the mouse to the rectangle
-            LeftColumnWidth = new GridLength(100, GridUnitType.Pixel);
-        }
-
-        private void CropRegion_OnMouseMove(object sender, MouseEventArgs e)
-        {
-            if (_isDragging)
-            {
-                Point currentPoint = e.GetPosition(MyGrid);
-                double delta = currentPoint.X - _startPoint.X; // Calculate horizontal movement in pixels
-
-                // Update how much we moved from the original position
-                CropMovement += delta;
-
-                // Adjust the column widths based on dragging
-                double newLeftWidth = LeftColumnWidth.Value + delta;
-                double newRightWidth = RightColumnWidth.Value - delta;
-
-                // Ensure that columns remain within valid width ranges
-                if (newLeftWidth >= 0 && newRightWidth >= 0)
-                {
-                    LeftColumnWidth = new GridLength(newLeftWidth, GridUnitType.Pixel);
-                    RightColumnWidth = new GridLength(newRightWidth, GridUnitType.Pixel);
-                }
-
-                // Update the starting point to the current point for smooth dragging
-                _startPoint = currentPoint;
-            }
-        }
-
-        private void CropRegion_OnMouseUp(object sender, MouseButtonEventArgs e)
-        {
-            var endPoint = e.GetPosition(MyGrid);
-            var move = endPoint.X - _startPoint.X;
-            Trace.WriteLine("movement: " + move);
-            _isDragging = false;
-            Mouse.Capture(null); // Release the mouse capture
         }
     }
 }

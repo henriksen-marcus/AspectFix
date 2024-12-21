@@ -26,7 +26,6 @@ namespace AspectFix
     public partial class HomeView : UserControl
     {
         private HomeViewModel viewModel;
-        private bool _isHoldingValidFile = false;
 
         private enum BorderAnimState
         {
@@ -75,26 +74,11 @@ namespace AspectFix
             FileNameTextBlock.Title = "No file selected";
             ContinueButton.IsEnabled = false;
             RemoveFileButton.Visibility = Visibility.Collapsed;
-            _isHoldingValidFile = false;
         }
 
-        
         private void RemoveFileButton_Click(object sender, RoutedEventArgs e)
         {
             ResetUI();
-        }
-
-        // When the user releases the mouse button with a file in hand
-        private void Border_Drop(object sender, DragEventArgs e)
-        {
-            if (!_isHoldingValidFile) return;
-
-            RunAnim("DashBorderDrop");
-            _borderAnimState = BorderAnimState.None;
-
-            ContinueButton.IsEnabled = true;
-            FileNameTextBlock.Title = MainWindow.Instance.SelectedFile.Path;
-            RemoveFileButton.Visibility = Visibility.Visible;
         }
 
         private void DropBorder_OnDragEnter(object sender, DragEventArgs e)
@@ -115,14 +99,16 @@ namespace AspectFix
                 {
                     RunAnim("DashBorderDeny");
                     _borderAnimState = BorderAnimState.Deny;
+                    DropTextBlock.Text = "Not a video";
                     return;
                 }
 
                 RunAnim("DashBorderEnter");
                 _borderAnimState = BorderAnimState.Receive;
+                RemoveFileButton.Visibility = Visibility.Visible;
 
                 MainWindow.Instance.SetSelectedFile(files[0]);
-                _isHoldingValidFile = true;
+                FileNameTextBlock.Title = MainWindow.Instance.SelectedFile.Path;
             }
             else
             {
@@ -131,27 +117,7 @@ namespace AspectFix
                 MainWindow.Instance.ErrorMessage("Couldn't retrieve any files.");
             }
         }
-        private void DropBorder_OnMouseLeave(object sender, MouseEventArgs e)
-        {
-            //DropBorder.AllowDrop = true;
-            //DashedOutline.Stroke = new SolidColorBrush(Colors.White);
-        }
 
-        private void DropBorder_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            //DropBorder.AllowDrop = true;
-            //DashedOutline.Stroke = new SolidColorBrush(Colors.White);
-        }
-        private void DropBorder_LostMouseCapture(object sender, MouseEventArgs e)
-        {
-            //DropBorder.AllowDrop = true;
-            //DashedOutline.Stroke = new SolidColorBrush(Colors.White);
-        }
-
-        //private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
-        //{
-        //    viewModel.AddFile("Hello there...");
-        //}
         private void DropBorder_OnDragLeave(object sender, DragEventArgs e)
         {
             switch (_borderAnimState)
@@ -167,11 +133,33 @@ namespace AspectFix
             }
 
             _borderAnimState = BorderAnimState.None;
+            DropTextBlock.Text = "Drag a file here";
         }
+        private void Border_Drop(object sender, DragEventArgs e)
+        {
+            if (_borderAnimState == BorderAnimState.Deny)
+            {
+                RunAnim("DashBorderClearDeny");
+                _borderAnimState = BorderAnimState.None;
+                DropTextBlock.Text = "Drag a file here";
+                return;
+            }
+
+            RunAnim("DashBorderDrop");
+            _borderAnimState = BorderAnimState.None;
+            DropTextBlock.Text = "Drag a file here";
+            ContinueButton.IsEnabled = true;
+        }
+
         private void RunAnim(string name)
         {
             Storyboard sb = this.FindResource(name) as Storyboard;
             if (sb != null) { BeginStoryboard(sb); }
         }
+
+        //private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        //{
+        //    viewModel.AddFile("Hello there...");
+        //}
     }
 }

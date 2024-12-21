@@ -8,18 +8,36 @@
              d:DesignHeight="30" d:DesignWidth="100"
              x:Name="Root">
     <UserControl.Resources>
-	    <Style x:Key="DisabledButtonStyle" TargetType="Button">
-		    <Setter Property="Cursor" Value="Hand"/>
+        <Style x:Key="DisabledButtonStyle" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
+                        <ControlTemplate.Resources>
+                            <Storyboard x:Key="RoundedButtonEnabled">
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+                                    <EasingDoubleKeyFrame KeyTime="00:00:00.2000000" Value="1.02"/>
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ButtonBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+                                    <EasingDoubleKeyFrame KeyTime="00:00:00.2000000" Value="3"/>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </ControlTemplate.Resources>
                         <Border x:Name="ButtonBorder"
 					            Background="#635e82"
 					            CornerRadius="10"
                                 SnapsToDevicePixels="True"
                                 RenderOptions.EdgeMode="Aliased"
                                 RenderOptions.BitmapScalingMode="HighQuality"
-                                UseLayoutRounding="True">
+                                UseLayoutRounding="True" RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform/>
+                                    <RotateTransform/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </Border.RenderTransform>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
@@ -53,8 +71,34 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Storyboard x:Key="ButtonEnabled">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CustomButton" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+                <EasingDoubleKeyFrame KeyTime="00:00:00.1400000" Value="1.05">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <QuadraticEase EasingMode="EaseOut"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+                <EasingDoubleKeyFrame KeyTime="00:00:00.3400000" Value="1">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <QuadraticEase EasingMode="EaseOut"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CustomButton" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+                <EasingDoubleKeyFrame KeyTime="00:00:00.1400000" Value="1.05">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <QuadraticEase EasingMode="EaseOut"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+                <EasingDoubleKeyFrame KeyTime="00:00:00.3400000" Value="1">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <QuadraticEase EasingMode="EaseOut"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
     </UserControl.Resources>
-	<Button x:Name="CustomButton"
+    <Button x:Name="CustomButton"
 	        Content="{Binding Text, ElementName=Root}"
 	        Foreground="White"
 	        FontSize="{Binding FontSize, ElementName=Root}"
@@ -63,8 +107,20 @@
 	        HorizontalAlignment="Stretch"
             Click="CustomButton_Click"
             MouseEnter="CustomButton_OnMouseEnter"
-            MouseLeave="Button_OnMouseLeave" SnapsToDevicePixels="True"
+            MouseLeave="Button_OnMouseLeave" 
+            SnapsToDevicePixels="True"
             RenderOptions.EdgeMode="Aliased"
             RenderOptions.BitmapScalingMode="HighQuality"
-            UseLayoutRounding="True"/>
+            UseLayoutRounding="True" 
+            RenderTransformOrigin="0.5,0.5"
+            IsEnabledChanged="CustomButton_OnIsEnabledChanged">
+        <Button.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform/>
+                <SkewTransform/>
+                <RotateTransform/>
+                <TranslateTransform/>
+            </TransformGroup>
+        </Button.RenderTransform>
+    </Button>
 </UserControl>

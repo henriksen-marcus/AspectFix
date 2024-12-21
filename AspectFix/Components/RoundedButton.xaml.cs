@@ -13,6 +13,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 
 namespace AspectFix.Components
 {
@@ -125,6 +126,14 @@ namespace AspectFix.Components
 
             scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, scaleXAnimation);
             scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, scaleYAnimation);
+        }
+
+        private void CustomButton_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!(bool)e.NewValue) return;
+
+            Storyboard sb = this.FindResource("ButtonEnabled") as Storyboard;
+            if (sb != null) { BeginStoryboard(sb); }
         }
     }
 }

@@ -87,7 +87,6 @@
     <Compile Include="Components\WindowTitleBox.xaml.cs">
       <DependentUpon>WindowTitleBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Services\Interpolator.cs" />
     <Compile Include="Services\ResizeAdorner.cs" />
     <Compile Include="Services\FFmpegCommand.cs" />
     <Compile Include="Views\Window1.xaml.cs">

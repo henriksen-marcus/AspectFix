@@ -15,8 +15,10 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="ButtonBorder"
 					            Background="#635e82"
-					            CornerRadius="10">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+					            CornerRadius="10"
+                                RenderTransformOrigin="0.5,0.5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" >
+                            </ContentPresenter>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsEnabled" Value="False">
@@ -29,7 +31,7 @@
                                             <ColorAnimation Storyboard.TargetName="ButtonBorder"
                                                 Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
                                                 To="#9c8ce7"
-                                                Duration="0:0:0.055" />
+                                             Duration="0:0:0.055" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.EnterActions>
@@ -38,8 +40,7 @@
                                         <Storyboard>
                                             <ColorAnimation Storyboard.TargetName="ButtonBorder"
                                                 Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                To="#635e82"
-                                                Duration="0:0:0.055" />
+                                                                 Duration="0:0:0.055" />
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>
@@ -60,7 +61,8 @@
             MouseEnter="CustomButton_OnMouseEnter"
             MouseLeave="Button_OnMouseLeave"
             SnapsToDevicePixels="True"
-            RenderOptions.BitmapScalingMode="HighQuality">
+            RenderOptions.BitmapScalingMode="HighQuality"
+            RenderTransformOrigin="0.5,0.5">
         <Image Source="{Binding ImageSource, ElementName=Root}"
                Stretch="Uniform"
                Margin="{Binding ImageMargin, ElementName=Root}"

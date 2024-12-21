@@ -51,15 +51,11 @@
                                         Margin="0 0 0 0"
                                         Grid.Row="0"
                                         HorizontalAlignment="Center"/>
-            <Grid Grid.Row="1" x:Name="MyGrid" >
-                <!--Width="{Binding ActualWidth, ElementName=ImagePreviewNew}"-->
-                <!--<Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="{Binding LeftColumnWidth, RelativeSource={RelativeSource AncestorType=local:EditView}}"/>
-                    <ColumnDefinition Width="{Binding CropBarsWidth, RelativeSource={RelativeSource AncestorType=local:EditView}}"/>
-                    <ColumnDefinition Width="{Binding RightColumnWidth, RelativeSource={RelativeSource AncestorType=local:EditView}}"/>
-                </Grid.ColumnDefinitions>-->
-                
-                <!--<Canvas x:Name="MainCanvas" Background="Red">
+            <Image x:Name="ImagePreviewNew"
+                   Stretch="Uniform"
+                   Grid.Row="1"/>
+            <!--<Grid Grid.Row="1" x:Name="MyGrid" >
+                --><!--<Canvas x:Name="MainCanvas" Background="Red">
 
                     --><!-- Image at original size --><!--
                     <Image x:Name="ImagePreviewNew"
@@ -77,10 +73,9 @@
                     <Thumb x:Name="TopRightHandle" Width="10" Height="10" Background="Red" Canvas.Left="245" Canvas.Top="10" DragDelta="OnResizeDrag"/>
                     <Thumb x:Name="BottomLeftHandle" Width="10" Height="10" Background="Red" Canvas.Left="45" Canvas.Top="110" DragDelta="OnResizeDrag"/>
                     <Thumb x:Name="BottomRightHandle" Width="10" Height="10" Background="Red" Canvas.Left="245" Canvas.Top="110" DragDelta="OnResizeDrag"/>
-                </Canvas>-->
+                </Canvas>--><!--
 
-            </Grid>
-            
+            </Grid>-->
         </Grid>
         
         <components:RoundedImageButton x:Name="RotateLeftButton" 

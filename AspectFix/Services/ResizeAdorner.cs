@@ -126,7 +126,6 @@ namespace AspectFix.Services
                 /*elm.Width = newWidth;
                 elm.Height = newHeight;*/
                 var w = elm.Width;
-                Interpolator.InterpolateProperty(ref w, newWidth, 0.5f);
             }
         }
 
