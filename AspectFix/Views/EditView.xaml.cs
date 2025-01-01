@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using AspectFix.Components;
 using AspectFix.Views;
 using Point = System.Windows.Point;
 
@@ -45,6 +47,8 @@ namespace AspectFix
             DataContext = MainWindow.Instance.EditViewModel;
 
             MainWindow.Instance.OnExitApp += Cleanup;
+            Loaded += EditView_Loaded;
+
             if (MainWindow.Instance.SelectedFile != null)
             {
                 InitPreviews();
@@ -54,6 +58,14 @@ namespace AspectFix
             //LayoutUpdated += EditView_LayoutUpdated;
 
             UpdateCropButton();
+        }
+
+        private void EditView_Loaded(object sender, RoutedEventArgs e)
+        {
+            var adorner = new ResizeAdorner(ResizeAdorner);
+            adorner.MaxWidth = 294;
+            adorner.MaxHeight = 172;
+            AdornerLayer.GetAdornerLayer(MyGrid).Add(adorner);
         }
 
         public void InitPreviews()

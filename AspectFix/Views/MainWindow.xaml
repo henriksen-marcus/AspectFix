@@ -134,53 +134,36 @@
                             Margin="0 ,0 ,20,0"
                             Panel.ZIndex="999"
                             Click="CloseButton_Overlay_OnClick">
-	                    <Button.Style>
-		                    <Style TargetType="Button">
+                        <Button.Style>
+                            <Style TargetType="Button">
                                 <Setter Property="Background" Value="#635e82"/>
                                 <Setter Property="Cursor" Value="Hand"/>
-			                    <Setter Property="Template">
-				                    <Setter.Value>
-					                    <ControlTemplate TargetType="Button">
-						                    <Border Background="{TemplateBinding Background}"
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
 						                            BorderBrush="{TemplateBinding BorderBrush}"
 						                            BorderThickness="0"
 						                            CornerRadius="5">
-							                    <ContentPresenter HorizontalAlignment="Center"
+                                                <ContentPresenter HorizontalAlignment="Center"
 							                                      VerticalAlignment="Center" />
-						                    </Border>
-					                    </ControlTemplate>
-				                    </Setter.Value>
-			                    </Setter>
-			                    <Style.Triggers>
-				                    <Trigger Property="IsMouseOver" Value="True">
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Background" Value="#f23d3d" />
-				                    </Trigger>
-			                    </Style.Triggers>
-		                    </Style>
-	                    </Button.Style>
-	                    <Image Source="Images/x_thick.png"
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <Image Source="Images/x_thick.png"
 	                           Stretch="Uniform"
 	                           Width="16"/>
                     </Button>
                 </Grid>
             </Grid>
-            <!--<Grid Name="MyGrid">
-                --><!--<Button Name="MyBtn" 
-                        Height="50" 
-                        Width="50" 
-                        HorizontalAlignment="Center" 
-                        VerticalAlignment="Center"/>--><!--
-                <Rectangle Name="MyBtn" 
-                           Fill="#66000000" 
-                           Width="50" 
-                           Height="50" 
-                           HorizontalAlignment="Center" 
-                           VerticalAlignment="Center"
-                           RadiusX="16"
-                           RadiusY="16"/>
-            </Grid>-->
-
-
         </Grid>
         <!--End of overlay grid-->
 

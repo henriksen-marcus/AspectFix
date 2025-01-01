@@ -49,7 +49,7 @@
         </Storyboard>
         <Storyboard x:Key="DashBorderDeny">
             <ColorAnimationUsingKeyFrames Storyboard.TargetName="DashedOutline" Storyboard.TargetProperty="(Shape.Stroke).(SolidColorBrush.Color)">
-                <EasingColorKeyFrame KeyTime="00:00:00.0600000" Value="#FFD80816">
+                <EasingColorKeyFrame KeyTime="00:00:00.0600000" Value="#FFFFDE00">
                     <EasingColorKeyFrame.EasingFunction>
                         <QuarticEase EasingMode="EaseOut"/>
                     </EasingColorKeyFrame.EasingFunction>

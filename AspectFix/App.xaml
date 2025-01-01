@@ -8,7 +8,10 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ComboBoxStyle.xaml" />
                 <ResourceDictionary Source="Styles/ProgressBarStyle.xaml" />
-                <ResourceDictionary Source="Styles/AfThumbStyle.xaml" />
+                <ResourceDictionary Source="Styles/AfThumbStyleTL.xaml" />
+                <ResourceDictionary Source="Styles/AfThumbStyleTR.xaml" />
+                <ResourceDictionary Source="Styles/AfThumbStyleBL.xaml" />
+                <ResourceDictionary Source="Styles/AfThumbStyleBR.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- DataTemplates (if you have any) -->

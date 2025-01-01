@@ -1,28 +1,27 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Style x:Key="AfThumbStyle" TargetType="Thumb">
-        <Setter Property="Height" Value="10" />
-        <Setter Property="Width" Value="10" />
-        <Setter Property="Background" Value="White" />
-        <!--<Setter Property="BorderBrush" Value="Black" />-->
-        <Setter Property="BorderThickness" Value="0" />
+    <Style x:Key="AfThumbStyleBR" TargetType="Thumb">
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
-                    <!--<Border Background="{TemplateBinding Background}" 
-                            BorderBrush="{TemplateBinding BorderBrush}" 
-                            BorderThickness="{TemplateBinding BorderThickness}" 
-                            CornerRadius="8" />-->
-                    <Canvas>
+                    <Grid>
+                        <!-- Ensure entire Thumb area is clickable -->
+                        <Rectangle Fill="Transparent" />
+
                         <Path Stroke="White" StrokeThickness="2">
                             <Path.Data>
                                 <PathGeometry>
                                     <PathGeometry.Figures>
                                         <PathFigureCollection>
-                                            <PathFigure StartPoint="0,10">
+                                            <PathFigure StartPoint="0,11">
                                                 <PathFigure.Segments>
                                                     <PathSegmentCollection>
-                                                        <QuadraticBezierSegment Point1="0,0" Point2="10,0" />
+                                                        <LineSegment Point="8,11" />
+                                                        <QuadraticBezierSegment Point1="11,11" Point2="11,8" />
+                                                        <LineSegment Point="11,0"/>
                                                     </PathSegmentCollection>
                                                 </PathFigure.Segments>
                                             </PathFigure>
@@ -31,9 +30,14 @@
                                 </PathGeometry>
                             </Path.Data>
                         </Path>
-                    </Canvas>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Cursor" Value="Hand" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 </ResourceDictionary>

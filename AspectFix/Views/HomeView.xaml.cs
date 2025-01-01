@@ -99,7 +99,7 @@ namespace AspectFix
                 {
                     RunAnim("DashBorderDeny");
                     _borderAnimState = BorderAnimState.Deny;
-                    DropTextBlock.Text = "Not a video";
+                    DropTextBlock.Text = "⚠ Not a video";
                     return;
                 }
 

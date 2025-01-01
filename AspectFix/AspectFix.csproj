@@ -87,7 +87,7 @@
     <Compile Include="Components\WindowTitleBox.xaml.cs">
       <DependentUpon>WindowTitleBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Services\ResizeAdorner.cs" />
+    <Compile Include="Components\ResizeAdorner.cs" />
     <Compile Include="Services\FFmpegCommand.cs" />
     <Compile Include="Views\Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>
@@ -109,7 +109,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Styles\AfThumbStyle.xaml">
+    <Page Include="Styles\AfThumbStyleBR.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Styles\AfThumbStyleBL.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Styles\AfThumbStyleTR.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Styles\AfThumbStyleTL.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

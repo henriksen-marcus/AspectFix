@@ -53,29 +53,18 @@
                                         HorizontalAlignment="Center"/>
             <Image x:Name="ImagePreviewNew"
                    Stretch="Uniform"
-                   Grid.Row="1"/>
-            <!--<Grid Grid.Row="1" x:Name="MyGrid" >
-                --><!--<Canvas x:Name="MainCanvas" Background="Red">
-
-                    --><!-- Image at original size --><!--
-                    <Image x:Name="ImagePreviewNew"
-                           Stretch="Uniform" Canvas.Left="0" Canvas.Top="0"/>
-                    --><!-- Crop region with resizable and draggable capability --><!--
-                    <Rectangle x:Name="CropRectangle"
-                               Stroke="Yellow"
-                               StrokeThickness="2"
-                               Fill="Transparent"
-                               Canvas.Left="50" Canvas.Top="15"
-                               Width="200" Height="100"/>
-
-                    --><!-- Resize handles (top-left, top-right, bottom-left, bottom-right) --><!--
-                    <Thumb x:Name="TopLeftHandle" Width="10" Height="10" Background="Red" Canvas.Left="45" Canvas.Top="10" DragDelta="OnResizeDrag"/>
-                    <Thumb x:Name="TopRightHandle" Width="10" Height="10" Background="Red" Canvas.Left="245" Canvas.Top="10" DragDelta="OnResizeDrag"/>
-                    <Thumb x:Name="BottomLeftHandle" Width="10" Height="10" Background="Red" Canvas.Left="45" Canvas.Top="110" DragDelta="OnResizeDrag"/>
-                    <Thumb x:Name="BottomRightHandle" Width="10" Height="10" Background="Red" Canvas.Left="245" Canvas.Top="110" DragDelta="OnResizeDrag"/>
-                </Canvas>--><!--
-
-            </Grid>-->
+                   Grid.Row="1"
+                   Visibility="Collapsed"/>
+            <Grid Name="MyGrid" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Height="172" Width="294">
+                <Rectangle Name="ResizeAdorner" 
+                           Fill="#66000000" 
+                           Width="50" 
+                           Height="50" 
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"
+                           RadiusX="16"
+                           RadiusY="16"/>
+            </Grid>
         </Grid>
         
         <components:RoundedImageButton x:Name="RotateLeftButton" 
