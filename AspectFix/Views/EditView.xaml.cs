@@ -45,6 +45,9 @@ namespace AspectFix
         private bool _hasInitiated = false;
         private FileProcessor.CropOptions _currentCropOptions;
         ResizeAdorner _resizeAdorner;
+        private Point _dragStartPoint;
+        private bool _isDragging = false;
+
 
         public EditView()
         {
@@ -144,6 +147,10 @@ namespace AspectFix
                     _resizeAdorner.MaxHeight = MyCanvas.ActualHeight - newTop;
                     break;
             }
+
+            // Prevent movement if new size is less than the minimum size
+            if (moveX) moveX = !(ResizeAdorner.ActualWidth + e.DeltaX <= _resizeAdorner.MinWidth);
+            if (moveY) moveY = !(ResizeAdorner.ActualHeight + e.DeltaY <= _resizeAdorner.MinHeight);
 
             if (moveX) Canvas.SetLeft(ResizeAdorner, newLeft);
             if (moveY) Canvas.SetTop(ResizeAdorner, newTop);
@@ -450,16 +457,14 @@ namespace AspectFix
             return estimatedSizeInMegabytes;
         }
 
-        private Point _dragStartPoint;
-        private bool _isDragging = false;
-
+        
         private void Rectangle_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            // Only initiate drag if left mouse button is pressed
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 _isDragging = true;
                 _dragStartPoint = e.GetPosition(MyCanvas);
+                ResizeAdorner.CaptureMouse(); // Allow dragging when mouse is outside the rectangle
                 e.Handled = true;
                 Cursor = Cursors.Hand;
             }
@@ -467,7 +472,6 @@ namespace AspectFix
 
         private void Rectangle_PreviewMouseMove(object sender, MouseEventArgs e)
         {
-            // If dragging, update the position of the rectangle
             if (_isDragging && e.LeftButton == MouseButtonState.Pressed)
             {
                 var currentPoint = e.GetPosition(MyCanvas);
@@ -491,25 +495,17 @@ namespace AspectFix
             }
         }
 
-        public static int Clamp(int value, int min, int max)
+        private void Rectangle_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (value < min) return min;
-            if (value > max) return max;
-            return value;
+            _isDragging = false;
+            ResizeAdorner.ReleaseMouseCapture();
+            Cursor = Cursors.Arrow;
         }
 
         public static double Clamp(double value, double min, double max)
         {
             if (value < min) return min;
-            if (value > max) return max;
-            return value;
-        }
-
-        private void Rectangle_PreviewMouseUp(object sender, MouseButtonEventArgs e)
-        {
-            // Reset dragging flag and cursor
-            _isDragging = false;
-            Cursor = Cursors.Arrow; // Reset cursor to default
+            return value > max ? max : value;
         }
     }
 }
