@@ -12,9 +12,27 @@ using System.Windows.Media;
 using System.Timers;
 using System.Threading;
 using System.Xml.Linq;
+using System.ComponentModel;
+using System.Windows.Media.Media3D;
 
 namespace AspectFix.Components
 {
+    public class ThumbDraggedEventArgs : EventArgs
+    {
+        public double DeltaX { get; }
+        public double DeltaY { get; }
+        public bool ExceedsXBounds { get; }
+        public bool ExceedsYBounds { get; }
+        public int Sender { get; }
+
+        public ThumbDraggedEventArgs(double deltaX, double deltaY, int sender)
+        {
+            DeltaX = deltaX;
+            DeltaY = deltaY;
+            Sender = sender;
+        }
+    }
+
     internal class ResizeAdorner : Adorner
     {
         private readonly VisualCollection _adornerVisuals;
@@ -34,6 +52,21 @@ namespace AspectFix.Components
         public double MaxWidth = 500;
         public double MinHeight = 20;
         public double MaxHeight = 500;
+        public bool BlockResizeX = false;
+        public bool BlockResizeY = false;
+
+        public new double Width
+        {
+            get => elm.Width;
+            set => elm.Width = value;
+        }
+        public new double Height
+        {
+            get => elm.Height;
+            set => elm.Height = value;
+        }
+
+        public event EventHandler<ThumbDraggedEventArgs> ThumbDragged;
 
         public ResizeAdorner(UIElement adornerElement) : base(adornerElement)
         {
@@ -82,6 +115,7 @@ namespace AspectFix.Components
         //            elm.Height = newHeight;
 
         //            Trace.WriteLine($"Updated: Width={elm.Width}, Height={elm.Height}");
+        //            ArrangeOverride()
         //        });
 
         //    return Task.CompletedTask;
@@ -105,46 +139,56 @@ namespace AspectFix.Components
         {
             var newWidth = elm.Width - e.HorizontalChange;
             var newHeight = elm.Height - e.VerticalChange;
-            setSize(newWidth, newHeight);
-
-            //if (newWidth > 0 && newHeight > 0)
-            //{
-            //    TargetWidth = newWidth;
-            //    TargetHeight = newHeight;
-            //    onSizeChanged();
-            //}
+            ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(
+                newWidth - elm.Width, newHeight - elm.Height, 0));
+            SetSize(newWidth, newHeight);
         }
 
         private void TopRight_DragDelta(object sender, DragDeltaEventArgs e)
         {
             var newWidth = elm.Width + e.HorizontalChange;
             var newHeight = elm.Height - e.VerticalChange;
-            setSize(newWidth, newHeight);
+            ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(
+                newWidth - elm.Width, newHeight - elm.Height, 1));
+            SetSize(newWidth, newHeight);
         }
 
         private void BottomLeft_DragDelta(object sender, DragDeltaEventArgs e)
         {
             var newWidth = elm.Width - e.HorizontalChange;
             var newHeight = elm.Height + e.VerticalChange;
-            setSize(newWidth, newHeight);
+            ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(
+                newWidth - elm.Width, newHeight - elm.Height, 2));
+            SetSize(newWidth, newHeight);
         }
 
         private void BottomRight_DragDelta(object sender, DragDeltaEventArgs e)
         {
             var newWidth = elm.Width + e.HorizontalChange;
             var newHeight = elm.Height + e.VerticalChange;
-            setSize(newWidth, newHeight);
+            ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(newWidth - elm.Width, newHeight - elm.Height, 3));
+            SetSize(newWidth, newHeight);
         }
 
-        private void setSize(double newWidth, double newHeight)
+        private void SetSize(double newWidth, double newHeight)
         {
-            if (newWidth > MaxWidth) newWidth = MaxWidth;
-            if (newWidth < MinWidth) newWidth = MinWidth;
-            if (newHeight > MaxHeight) newHeight = MaxHeight;
-            if (newHeight < MinHeight) newHeight = MinHeight;
+            var o = newWidth;
 
-            elm.Width = newWidth;
-            elm.Height = newHeight;
+            if (!BlockResizeX)
+            {
+                if (newWidth > MaxWidth) newWidth = MaxWidth;
+                if (newWidth < MinWidth) newWidth = MinWidth;
+                elm.Width = newWidth;
+            }
+
+            if (!BlockResizeY)
+            {
+                if (newHeight > MaxHeight) newHeight = MaxHeight;
+                if (newHeight < MinHeight) newHeight = MinHeight;
+                elm.Height = newHeight;
+            }
+
+            if (o != newWidth) Console.WriteLine("Got clamped!");
         }
 
         protected override Visual GetVisualChild(int index) => _adornerVisuals[index];

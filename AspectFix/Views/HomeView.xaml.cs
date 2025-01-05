@@ -20,9 +20,6 @@ using System.Windows.Media.Animation;
 
 namespace AspectFix
 {
-    /// <summary>
-    /// Interaction logic for UserControl1.xaml
-    /// </summary>
     public partial class HomeView : UserControl
     {
         private HomeViewModel viewModel;
@@ -87,6 +84,8 @@ namespace AspectFix
             {
                 RunAnim("DashBorderDeny");
                 _borderAnimState = BorderAnimState.Deny;
+                WarningIcon.Visibility = Visibility.Visible;
+                DropTextBlock.Text = "Not a video";
                 return;
             }
 
@@ -99,7 +98,8 @@ namespace AspectFix
                 {
                     RunAnim("DashBorderDeny");
                     _borderAnimState = BorderAnimState.Deny;
-                    DropTextBlock.Text = "⚠ Not a video";
+                    DropTextBlock.Text = "Not a video";
+                    WarningIcon.Visibility = Visibility.Visible;
                     return;
                 }
 
@@ -108,11 +108,11 @@ namespace AspectFix
                 RemoveFileButton.Visibility = Visibility.Visible;
 
                 MainWindow.Instance.SetSelectedFile(files[0]);
-                FileNameTextBlock.Title = MainWindow.Instance.SelectedFile.Path;
             }
             else
             {
                 RunAnim("DashBorderDeny");
+                WarningIcon.Visibility = Visibility.Visible;
                 _borderAnimState = BorderAnimState.Deny;
                 MainWindow.Instance.ErrorMessage("Couldn't retrieve any files.");
             }
@@ -127,8 +127,7 @@ namespace AspectFix
                     break;
                 case BorderAnimState.Deny:
                     RunAnim("DashBorderClearDeny");
-                    break;
-                default:
+                    WarningIcon.Visibility = Visibility.Collapsed;
                     break;
             }
 
@@ -140,10 +139,13 @@ namespace AspectFix
             if (_borderAnimState == BorderAnimState.Deny)
             {
                 RunAnim("DashBorderClearDeny");
+                WarningIcon.Visibility = Visibility.Collapsed;
                 _borderAnimState = BorderAnimState.None;
                 DropTextBlock.Text = "Drag a file here";
                 return;
             }
+
+            FileNameTextBlock.Title = MainWindow.Instance.SelectedFile.Path;
 
             RunAnim("DashBorderDrop");
             _borderAnimState = BorderAnimState.None;

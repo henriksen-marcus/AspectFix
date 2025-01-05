@@ -7,11 +7,15 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 using AspectFix.Components;
 using AspectFix.Views;
+using Path = System.IO.Path;
 using Point = System.Windows.Point;
 
 namespace AspectFix
@@ -40,6 +44,7 @@ namespace AspectFix
 
         private bool _hasInitiated = false;
         private FileProcessor.CropOptions _currentCropOptions;
+        ResizeAdorner _resizeAdorner;
 
         public EditView()
         {
@@ -62,10 +67,86 @@ namespace AspectFix
 
         private void EditView_Loaded(object sender, RoutedEventArgs e)
         {
-            var adorner = new ResizeAdorner(ResizeAdorner);
-            adorner.MaxWidth = 294;
-            adorner.MaxHeight = 172;
-            AdornerLayer.GetAdornerLayer(MyGrid).Add(adorner);
+            _resizeAdorner = new ResizeAdorner(ResizeAdorner);
+            _resizeAdorner.MaxWidth = MyCanvas.Width;
+            _resizeAdorner.MaxHeight = MyCanvas.Height;
+            _resizeAdorner.ThumbDragged += ResizeAdorner_ThumbDragged;
+            AdornerLayer.GetAdornerLayer(ResizeAdorner).Add(_resizeAdorner);
+
+            var parentGrid = NewImageContainer.Parent as FrameworkElement;
+            if (parentGrid != null)
+            {
+                double parentWidth = parentGrid.ActualWidth;
+                double parentHeight = parentGrid.ActualHeight;
+
+                //Console.WriteLine($"Parent Width: {parentWidth}, Parent Height: {parentHeight}");
+                //Console.WriteLine($"Diff: {parentWidth - ImagePreviewNew.ActualWidth}, {parentHeight - ImagePreviewNew.ActualHeight}");
+
+                MyCanvas.Height = NewImageContainer.ActualHeight;
+                MyCanvas.Width = NewImageContainer.ActualWidth;
+
+                var scaleX = MainWindow.Instance.SelectedFile.Width / NewImageContainer.ActualWidth;
+                var scaleY = MainWindow.Instance.SelectedFile.Height / NewImageContainer.ActualHeight;
+
+                _resizeAdorner.Width = MainWindow.Instance.SelectedFile.CroppedWidth / scaleX;
+                _resizeAdorner.Height = MainWindow.Instance.SelectedFile.CroppedHeight / scaleY;
+
+                Canvas.SetLeft(ResizeAdorner, 0/*MyCanvas.ActualWidth / 2 -_resizeAdorner.Width / 2*/);
+                Canvas.SetTop(ResizeAdorner, 0/*MyCanvas.ActualHeight / 2 - _resizeAdorner.Height / 2*/);
+            }
+        }
+
+
+        private void ResizeAdorner_ThumbDragged(object sender, ThumbDraggedEventArgs e)
+        {
+            // Note: This was a fucking nightmare
+
+            double newLeft = Canvas.GetLeft(ResizeAdorner) - e.DeltaX / 2;
+            double newTop = Canvas.GetTop(ResizeAdorner) - e.DeltaY / 2;
+
+            newLeft = Clamp(newLeft, 0, MyCanvas.ActualWidth - ResizeAdorner.ActualWidth);
+            newTop = Clamp(newTop, 0, MyCanvas.ActualHeight - ResizeAdorner.ActualHeight);
+
+            // Prevent width/height increase on right and bottom by dragging top and left thumbs when at 0
+            bool blockLeft = newLeft == 0 && e.DeltaX > 0;
+            bool blockTop = newTop == 0 && e.DeltaY > 0;
+
+            _resizeAdorner.BlockResizeX = (blockLeft && e.Sender is 0 or 2);
+            _resizeAdorner.BlockResizeY = (blockTop && e.Sender is 0 or 1);
+
+            bool moveX = true;
+            bool moveY = true;
+
+            switch (e.Sender)
+            {
+                case 1:
+                    if (Canvas.GetLeft(ResizeAdorner) + ResizeAdorner.ActualWidth + e.DeltaX >= MyCanvas.ActualWidth) moveX = false;
+                    else _resizeAdorner.MaxWidth = MyCanvas.ActualWidth - newLeft;
+
+                    _resizeAdorner.MaxHeight = MyCanvas.ActualHeight - newTop;
+                    break;
+                case 2: // Bottom left
+                    _resizeAdorner.MaxWidth = MyCanvas.ActualWidth - newLeft;
+
+                    if (Canvas.GetTop(ResizeAdorner) + ResizeAdorner.ActualHeight + e.DeltaY >= MyCanvas.ActualHeight) moveY = false;
+                    else _resizeAdorner.MaxHeight = MyCanvas.ActualHeight - newTop;
+
+                    break;
+                case 3: // Bottom right
+                    if (Canvas.GetLeft(ResizeAdorner) + ResizeAdorner.ActualWidth + e.DeltaX >= MyCanvas.ActualWidth) moveX = false;
+                    else _resizeAdorner.MaxWidth = MyCanvas.ActualWidth - newLeft;
+                    
+                    if (Canvas.GetTop(ResizeAdorner) + ResizeAdorner.ActualHeight + e.DeltaY >= MyCanvas.ActualHeight) moveY = false;
+                    else _resizeAdorner.MaxHeight = MyCanvas.ActualHeight - newTop;
+                    break;
+                default:
+                    _resizeAdorner.MaxWidth = MyCanvas.ActualWidth - newLeft;
+                    _resizeAdorner.MaxHeight = MyCanvas.ActualHeight - newTop;
+                    break;
+            }
+
+            if (moveX) Canvas.SetLeft(ResizeAdorner, newLeft);
+            if (moveY) Canvas.SetTop(ResizeAdorner, newTop);
         }
 
         public void InitPreviews()
@@ -91,7 +172,11 @@ namespace AspectFix
             var h = MainWindow.Instance.SelectedFile.Height;
             OriginalTitle.Title = "Original " + w + "x" + h;
 
-            UpdatePreview();
+            w = MainWindow.Instance.SelectedFile.CroppedWidth;
+            h = MainWindow.Instance.SelectedFile.CroppedHeight;
+            CroppedTitle.Title = "Cropped " + w + "x" + h;
+
+            ImagePreviewNew.ImageSource = _oldPreview;
         }
 
         /// <summary>
@@ -130,7 +215,7 @@ namespace AspectFix
                     _newPreview.EndInit();
                 }
 
-                ImagePreviewNew.Source = _newPreview;
+                ImagePreviewNew.ImageSource = _newPreview;
 
                 var w = MainWindow.Instance.SelectedFile.CroppedWidth;
                 var h = MainWindow.Instance.SelectedFile.CroppedHeight;
@@ -315,9 +400,6 @@ namespace AspectFix
             UpdateCropButton();
         }
 
-
-
-
         public double OldEst()
         {
             FileInfo oldFileInfo = new FileInfo(MainWindow.Instance.SelectedFile.Path);
@@ -332,8 +414,6 @@ namespace AspectFix
             //Console.WriteLine("Percentage change: " + percentageChange);
             return (double)oldFileInfo.Length / 1000000 * percentageChange;
         }
-
-
 
         public static double EstimateVideoSize(VideoFile videoFile)
         {
@@ -368,6 +448,68 @@ namespace AspectFix
             double estimatedSizeInMegabytes = estimatedSizeInBytes / (1024 * 1024);
 
             return estimatedSizeInMegabytes;
+        }
+
+        private Point _dragStartPoint;
+        private bool _isDragging = false;
+
+        private void Rectangle_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Only initiate drag if left mouse button is pressed
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                _isDragging = true;
+                _dragStartPoint = e.GetPosition(MyCanvas);
+                e.Handled = true;
+                Cursor = Cursors.Hand;
+            }
+        }
+
+        private void Rectangle_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            // If dragging, update the position of the rectangle
+            if (_isDragging && e.LeftButton == MouseButtonState.Pressed)
+            {
+                var currentPoint = e.GetPosition(MyCanvas);
+
+                double deltaX = currentPoint.X - _dragStartPoint.X;
+                double deltaY = currentPoint.Y - _dragStartPoint.Y;
+
+                double newLeft = Canvas.GetLeft(ResizeAdorner) + deltaX;
+                double newTop = Canvas.GetTop(ResizeAdorner) + deltaY;
+
+                newLeft = Clamp(newLeft, 0, MyCanvas.ActualWidth - ResizeAdorner.ActualWidth);
+                newTop = Clamp(newTop, 0, MyCanvas.ActualHeight - ResizeAdorner.ActualHeight);
+
+                _resizeAdorner.MaxWidth = MyCanvas.ActualWidth - newLeft;
+                _resizeAdorner.MaxHeight = MyCanvas.ActualHeight - newTop;
+
+                Canvas.SetLeft(ResizeAdorner, newLeft);
+                Canvas.SetTop(ResizeAdorner, newTop);
+
+                _dragStartPoint = currentPoint;
+            }
+        }
+
+        public static int Clamp(int value, int min, int max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+
+        public static double Clamp(double value, double min, double max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+
+        private void Rectangle_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            // Reset dragging flag and cursor
+            _isDragging = false;
+            Cursor = Cursors.Arrow; // Reset cursor to default
         }
     }
 }
