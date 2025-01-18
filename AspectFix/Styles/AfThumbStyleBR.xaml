@@ -19,7 +19,7 @@
                                             <PathFigure StartPoint="2,14">
                                                 <PathFigure.Segments>
                                                     <PathSegmentCollection>
-                                                        <LineSegment Point="10,14" />
+                                                        <LineSegment Point="10,14"/>
                                                         <QuadraticBezierSegment Point1="14,14" Point2="14,10" />
                                                         <LineSegment Point="14,2"/>
                                                     </PathSegmentCollection>
