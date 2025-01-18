@@ -21,8 +21,6 @@ namespace AspectFix.Components
     {
         public double DeltaX { get; }
         public double DeltaY { get; }
-        public bool ExceedsXBounds { get; }
-        public bool ExceedsYBounds { get; }
         public int Sender { get; }
 
         public ThumbDraggedEventArgs(double deltaX, double deltaY, int sender)
@@ -42,11 +40,7 @@ namespace AspectFix.Components
         private readonly Thumb _bottomRight;
         private readonly FrameworkElement elm;
 
-        //private readonly System.Timers.Timer timer;
-        private const double BtnSize = 12.0;
-
-        //public double TargetWidth = 100;
-        //public double TargetHeight = 100;
+        private const double BtnSize = 16.0;
 
         public double MinWidth = 20;
         public double MaxWidth = 500;
@@ -87,10 +81,6 @@ namespace AspectFix.Components
             _adornerVisuals.Add(_bottomRight);
 
             elm = (FrameworkElement)AdornedElement;
-
-            //timer = new System.Timers.Timer(4);
-            //timer.Elapsed += async (sender, e) => await HandleTimer();
-            //timer.Start();
         }
 
         //private Task HandleTimer()
@@ -139,8 +129,7 @@ namespace AspectFix.Components
         {
             var newWidth = elm.Width - e.HorizontalChange;
             var newHeight = elm.Height - e.VerticalChange;
-            ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(
-                newWidth - elm.Width, newHeight - elm.Height, 0));
+            ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(newWidth - elm.Width, newHeight - elm.Height, 0));
             SetSize(newWidth, newHeight);
         }
 
@@ -148,8 +137,7 @@ namespace AspectFix.Components
         {
             var newWidth = elm.Width + e.HorizontalChange;
             var newHeight = elm.Height - e.VerticalChange;
-            ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(
-                newWidth - elm.Width, newHeight - elm.Height, 1));
+            ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(newWidth - elm.Width, newHeight - elm.Height, 1));
             SetSize(newWidth, newHeight);
         }
 
@@ -157,8 +145,7 @@ namespace AspectFix.Components
         {
             var newWidth = elm.Width - e.HorizontalChange;
             var newHeight = elm.Height + e.VerticalChange;
-            ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(
-                newWidth - elm.Width, newHeight - elm.Height, 2));
+            ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(newWidth - elm.Width, newHeight - elm.Height, 2));
             SetSize(newWidth, newHeight);
         }
 
@@ -172,8 +159,6 @@ namespace AspectFix.Components
 
         private void SetSize(double newWidth, double newHeight)
         {
-            var o = newWidth;
-
             if (!BlockResizeX)
             {
                 if (newWidth > MaxWidth) newWidth = MaxWidth;
@@ -187,8 +172,6 @@ namespace AspectFix.Components
                 if (newHeight < MinHeight) newHeight = MinHeight;
                 elm.Height = newHeight;
             }
-
-            if (o != newWidth) Console.WriteLine("Got clamped!");
         }
 
         protected override Visual GetVisualChild(int index) => _adornerVisuals[index];
@@ -196,7 +179,7 @@ namespace AspectFix.Components
         protected override Size ArrangeOverride(Size finalSize)
         {
             double half = BtnSize / 2;
-            double offset = 6;
+            double offset = 7; // Higher = closer to middle
 
             _topLeft.Arrange(new Rect(-half + offset, -half + offset, BtnSize, BtnSize));
             _topRight.Arrange(new Rect(AdornedElement.DesiredSize.Width - half - offset, -half + offset, BtnSize, BtnSize));

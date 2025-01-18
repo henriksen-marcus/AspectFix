@@ -12,13 +12,13 @@
     </UserControl.Resources>
     <Grid ShowGridLines="False">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.15*"/>
+            <ColumnDefinition Width="0.1*"/>
             <ColumnDefinition Width="0.7*"/>
-            <ColumnDefinition Width="0.15*"/>
+            <ColumnDefinition Width="0.1*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="0.36*"/>
-            <RowDefinition Height="0.36*"/>
+            <RowDefinition Height="0.40*"/>
+            <RowDefinition Height="0.40*"/>
             <RowDefinition Height="0.175*"/>
             <RowDefinition Height="0.105*"/>
         </Grid.RowDefinitions>
@@ -39,7 +39,7 @@
                    Grid.Row="1"/>
         </Grid>
 
-        <Grid Grid.Row="1" Grid.Column="1" VerticalAlignment="Top">
+        <Grid Grid.Row="1" Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="35"/>
                 <RowDefinition Height="1*"/>
@@ -47,7 +47,7 @@
 
             <components:RoundedTitleBox x:Name="CroppedTitle"
                                         Title="Cropped"
-                                        Margin="0 0 0 0"
+                                        Margin="0 0 0 4"
                                         Grid.Row="0"
                                         HorizontalAlignment="Center"/>
             <!-- Why's it gotta be so damn hard to make an image with a radius? -->
@@ -57,23 +57,37 @@
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch">
                 <Rectangle.Fill>
-                    <ImageBrush x:Name="ImagePreviewNew" Stretch="UniformToFill"/>
+                    <ImageBrush x:Name="ImagePreviewNew" Stretch="Uniform"/>
                 </Rectangle.Fill>
             </Rectangle>
 
-            <Canvas Name="MyCanvas" Grid.Row="1" Height="172" Width="294">
-                <Rectangle Name="ResizeAdorner"
-                           Fill="#66000000"
-                           Width="100"
-                           Height="100"
-                           RadiusX="10"
-                           RadiusY="10"
-                           MouseDown="Rectangle_PreviewMouseDown"
-                           MouseMove="Rectangle_PreviewMouseMove"
-                           MouseUp="Rectangle_PreviewMouseUp"
-                           Margin="0"
-                           Canvas.Left="100"
-                           Canvas.Top="10"/>
+            <Canvas Name="MyCanvas" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Grid Name="ResizeAdorner"
+                      MouseDown="Rectangle_PreviewMouseDown"
+                      MouseMove="Rectangle_PreviewMouseMove"
+                      MouseUp="Rectangle_PreviewMouseUp"
+                      >
+
+                    <!-- Highlighting border -->
+                    <Rectangle
+                        RadiusX="4" 
+                        RadiusY="4" 
+                        StrokeThickness="2" 
+                        Fill="Transparent" 
+                        Stroke="Orange" 
+                        Opacity="1">
+                        <Rectangle.Effect>
+                            <DropShadowEffect 
+                                Color="Black"
+                                ShadowDepth="0"
+                                BlurRadius="8"
+                                Opacity="0.6"
+                                RenderingBias="Performance"/>
+                        </Rectangle.Effect>
+                    </Rectangle>
+
+                </Grid>
+                
             </Canvas>
         </Grid>
 
@@ -85,7 +99,8 @@
                                        ImageSource="../Images/arrow_left.png"
                                        Click="RotateLeftButton_OnClick"
                                        Visibility="Visible"
-                                       Margin="6 35 0 0"/>
+                                       Margin="0 35 0 0"
+                                       HorizontalAlignment="Center"/>
         <components:RoundedImageButton x:Name="RotateRightButton"  
                                        Grid.Row="1"
                                        Grid.Column="2"
@@ -94,7 +109,8 @@
                                        ImageSource="../Images/arrow_right.png"
                                        Click="RotateRightButton_OnClick"
                                        Visibility="Visible"
-                                       Margin="0 35 6 0"/>
+                                       Margin="0 35 0 0"
+                                       HorizontalAlignment="Center"/>
 
         <StackPanel Grid.Row="2"
                     Grid.Column="1"

@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using AspectFix.Components;
+using AspectFix.Services;
 using AspectFix.Views;
 using Path = System.IO.Path;
 using Point = System.Windows.Point;
@@ -48,7 +49,6 @@ namespace AspectFix
         private Point _dragStartPoint;
         private bool _isDragging = false;
 
-
         public EditView()
         {
             InitializeComponent();
@@ -77,28 +77,34 @@ namespace AspectFix
             AdornerLayer.GetAdornerLayer(ResizeAdorner).Add(_resizeAdorner);
 
             var parentGrid = NewImageContainer.Parent as FrameworkElement;
-            if (parentGrid != null)
+            if (parentGrid == null)
             {
-                double parentWidth = parentGrid.ActualWidth;
-                double parentHeight = parentGrid.ActualHeight;
-
-                //Console.WriteLine($"Parent Width: {parentWidth}, Parent Height: {parentHeight}");
-                //Console.WriteLine($"Diff: {parentWidth - ImagePreviewNew.ActualWidth}, {parentHeight - ImagePreviewNew.ActualHeight}");
-
-                MyCanvas.Height = NewImageContainer.ActualHeight;
-                MyCanvas.Width = NewImageContainer.ActualWidth;
-
-                var scaleX = MainWindow.Instance.SelectedFile.Width / NewImageContainer.ActualWidth;
-                var scaleY = MainWindow.Instance.SelectedFile.Height / NewImageContainer.ActualHeight;
-
-                _resizeAdorner.Width = MainWindow.Instance.SelectedFile.CroppedWidth / scaleX;
-                _resizeAdorner.Height = MainWindow.Instance.SelectedFile.CroppedHeight / scaleY;
-
-                Canvas.SetLeft(ResizeAdorner, 0/*MyCanvas.ActualWidth / 2 -_resizeAdorner.Width / 2*/);
-                Canvas.SetTop(ResizeAdorner, 0/*MyCanvas.ActualHeight / 2 - _resizeAdorner.Height / 2*/);
+                MainWindow.Instance.ErrorMessage("Could not initialize cropping system.");
+                MyCanvas.Visibility = Visibility.Collapsed;
+                return;
             }
-        }
 
+            double parentWidth = parentGrid.ActualWidth;
+            double parentHeight = parentGrid.ActualHeight;
+
+            //Console.WriteLine($"Parent Width: {parentWidth}, Parent Height: {parentHeight}");
+            //Console.WriteLine($"Diff: {parentWidth - ImagePreviewNew.ActualWidth}, {parentHeight - ImagePreviewNew.ActualHeight}");
+
+            //MyCanvas.Height = NewImageContainer.ActualHeight;
+            //MyCanvas.Width = NewImageContainer.ActualWidth;
+
+            var scaleX = MainWindow.Instance.SelectedFile.Width / NewImageContainer.ActualWidth;
+            var scaleY = MainWindow.Instance.SelectedFile.Height / NewImageContainer.ActualHeight;
+
+            (int w, int h, _, _) = MainWindow.Instance.SelectedFile.GetCroppedDimensions(GetCropOptions());
+
+            _resizeAdorner.Width = w / scaleX;
+            _resizeAdorner.Height = h / scaleY;
+
+            //Console.WriteLine($"Width {MainWindow.Instance.SelectedFile.Width} Height {MainWindow.Instance.SelectedFile.Height} CroppedW {MainWindow.Instance.SelectedFile.CroppedWidth} CroppedH {MainWindow.Instance.SelectedFile.CroppedHeight}");
+            Canvas.SetLeft(ResizeAdorner, 0/*MyCanvas.ActualWidth / 2 -_resizeAdorner.Width / 2*/);
+            Canvas.SetTop(ResizeAdorner, 0/*MyCanvas.ActualHeight / 2 - _resizeAdorner.Height / 2*/);
+        }
 
         private void ResizeAdorner_ThumbDragged(object sender, ThumbDraggedEventArgs e)
         {
@@ -184,6 +190,8 @@ namespace AspectFix
             CroppedTitle.Title = "Cropped " + w + "x" + h;
 
             ImagePreviewNew.ImageSource = _oldPreview;
+
+            UpdatePreview();
         }
 
         /// <summary>
@@ -193,13 +201,13 @@ namespace AspectFix
         {
             // Delete previous preview before making a new one else we
             // will get an error because the previous file is in use
-            if (_newPreview != null)
-            {
-                _newPreview.StreamSource?.Dispose();
-                _newPreview = null;
-                GC.Collect();
-                //File.Delete("preview_new.jpg");
-            }
+            //if (_newPreview != null)
+            //{
+            //    _newPreview.StreamSource?.Dispose();
+            //    _newPreview = null;
+            //    GC.Collect();
+            //    //File.Delete("preview_new.jpg");
+            //}
 
             //if (_currentCropOptions.Equals(default))
             //{
@@ -210,22 +218,22 @@ namespace AspectFix
             string newPreviewPath = FileProcessor.GetCroppedPreviewImage(MainWindow.Instance.SelectedFile, GetCropOptions());
             if (newPreviewPath != null)
             {
-                using (FileStream stream = File.OpenRead(newPreviewPath))
-                using (var memStream = new MemoryStream())
-                {
-                    stream.CopyTo(memStream);
-                    memStream.Seek(0, SeekOrigin.Begin);
-                    _newPreview = new BitmapImage();
-                    _newPreview.BeginInit();
-                    _newPreview.CacheOption = BitmapCacheOption.OnLoad;
-                    _newPreview.StreamSource = memStream;
-                    _newPreview.EndInit();
-                }
+                //using (FileStream stream = File.OpenRead(newPreviewPath))
+                //using (var memStream = new MemoryStream())
+                //{
+                //    stream.CopyTo(memStream);
+                //    memStream.Seek(0, SeekOrigin.Begin);
+                //    _newPreview = new BitmapImage();
+                //    _newPreview.BeginInit();
+                //    _newPreview.CacheOption = BitmapCacheOption.OnLoad;
+                //    _newPreview.StreamSource = memStream;
+                //    _newPreview.EndInit();
+                //}
 
-                ImagePreviewNew.ImageSource = _newPreview;
+                //ImagePreviewNew.ImageSource = _newPreview;
 
-                var w = MainWindow.Instance.SelectedFile.CroppedWidth;
-                var h = MainWindow.Instance.SelectedFile.CroppedHeight;
+                (int w, int h, _, _) = MainWindow.Instance.SelectedFile.GetCroppedDimensions(GetCropOptions());
+                //var h = MainWindow.Instance.SelectedFile.CroppedHeight;
                 CroppedTitle.Title = "Cropped " + w + "x" + h;
             }
             else MainWindow.Instance.ErrorMessage("Failed to generate preview image :(");
