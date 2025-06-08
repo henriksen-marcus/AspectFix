@@ -71,6 +71,7 @@
             <Image.LayoutTransform>
                 <TransformGroup>
                     <RotateTransform Angle="{Binding IconRotation, ElementName=Root}"></RotateTransform>
+                    <ScaleTransform ScaleX="{Binding IconScale, ElementName=Root}" ScaleY="{Binding IconScale, ElementName=Root}"/>
                 </TransformGroup>
             </Image.LayoutTransform>
         </Image>

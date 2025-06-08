@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AspectFix.Services;
 using static AspectFix.FileProcessor;
 
 namespace AspectFix;
@@ -288,7 +289,7 @@ using System.Text;
 //    /// Builds the complete ffmpeg command string.
 //    /// </summary>
 //    /// <returns>The final ffmpeg command string.</returns>
-//    public string Build()
+//    public string BuildArgument()
 //    {
 //        // Ensure stream copying is added if applicable
 //        AddStreamCopyingIfPossible();
@@ -319,15 +320,15 @@ public static class FFmpegCommand
     /// <param name="options">The CropOptions for cropping the video.</param>
     /// <param name="outputPath">The output path where the processed video will be saved.</param>
     /// <returns>A string representing the ffmpeg command to execute.</returns>
-    public static string Build(VideoFile video, CropOptions options)
+    public static string BuildArgument(VideoFile video, CropOptions options)
     {
         var commandBuilder = new StringBuilder();
 
         // Start the ffmpeg command
-        commandBuilder.Append($"ffmpeg -i \"{video.Path}\" ");
+        commandBuilder.Append($"-y -i \"{video.Path}\" ");
 
         // Add trimming options (if applicable)
-        if (video.TrimStart != TimeSpan.Zero || video.TrimEnd.TotalSeconds != video.Length)
+        if (video.TrimStart != TimeSpan.Zero || video.TrimEnd != video.Length)
         {
             commandBuilder.AppendFormat("-ss {0:hh\\:mm\\:ss} -to {1:hh\\:mm\\:ss} ", video.TrimStart, video.TrimEnd);
         }
@@ -359,8 +360,8 @@ public static class FFmpegCommand
         // Add crop filter if cropping is enabled
         if (options.ShouldCrop)
         {
-            var (w, h, x, y) = video.GetCroppedDimensions(options);
-            filters.Add($"crop={w}:{h}:{x}:{y}");
+            var (w, h, x, y) = video.GetFinalDimensions(options);
+            filters.Add($"crop={(int)w}:{(int)h}:{(int)x}:{(int)y}");
         }
 
         // Add rotation filter based on the rotation setting of the video
@@ -370,12 +371,12 @@ public static class FFmpegCommand
             filters.Add($"transpose={rotateFilter}");
         }
 
-        // Add scale filter based on the cropped dimensions (if applicable)
-        string scaleCommand = video.GetLQScale(video.CroppedWidth, video.CroppedHeight);
-        if (!string.IsNullOrEmpty(scaleCommand))
-        {
-            filters.Add($"scale={scaleCommand}");
-        }
+        //// Add scale filter based on the cropped dimensions (if applicable)
+        //string scaleCommand = video.GetLQScale(video.CroppedWidth, video.CroppedHeight);
+        //if (!string.IsNullOrEmpty(scaleCommand))
+        //{
+        //    filters.Add($"scale={scaleCommand}");
+        //}
 
         // Join all filters with commas
         return filters.Count > 0 ? $"-vf \"{string.Join(",", filters)}\"" : string.Empty;

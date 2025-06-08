@@ -21,7 +21,7 @@ namespace AspectFix
 
         public MainViewModel()
         {
-            SelectedViewModel = new HomeViewModel();
+            SelectedViewModel = new HomeViewModel(); //HomeViewModel();
         }
     }
 }

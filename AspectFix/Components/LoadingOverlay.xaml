@@ -38,7 +38,7 @@
                     Name="ProgressBar"
                     Height="22"
                     BorderThickness="2.5"/>-->
-                <TextBlock Text="0%"
+                <TextBlock Text="0 seconds left"
                            FontSize="14"
                            Foreground="White"
                            Margin="0,4,0,5"

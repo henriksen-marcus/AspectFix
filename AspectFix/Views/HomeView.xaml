@@ -5,11 +5,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AspectFix"
              xmlns:components="clr-namespace:AspectFix.Components"
+             xmlns:services="clr-namespace:AspectFix.Services"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
-             d:DesignHeight="575" d:DesignWidth="420"
+             d:DesignHeight="780" d:DesignWidth="504"
              Background="Transparent">
     <UserControl.Resources>
+        <services:CountToVisibilityConverter x:Key="CountToVis"/>
         <Storyboard x:Key="DashBorderEnter">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetName="DashedOutline" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
                 <EasingDoubleKeyFrame KeyTime="00:00:00.1000000" Value="1.03"/>
@@ -327,22 +329,38 @@
             </Button>-->
         </StackPanel>
 
-        <ItemsControl x:Name="RecentFilesList"
-                  Grid.Column="1"
-                  Grid.Row="2"
-                  Margin="0 20 0 20"
-                  HorizontalAlignment="Center"
-                  Background="Transparent"
-                  BorderBrush="Transparent"
-                  ItemsSource="{Binding RecentFiles}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel HorizontalAlignment="Center" Margin="2">
-                        <components:RoundedTitleBox Title="{Binding}"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <StackPanel Margin="0,40,0,20"
+                    Grid.Column="1"
+                    Grid.Row="2"
+                    Visibility="{Binding RecentFiles.Count, Converter={StaticResource CountToVis}}">
+            <TextBlock Text="Recent files"
+               HorizontalAlignment="Center"
+               FontSize="18"
+               Foreground="#FFFF"
+               TextAlignment="Center"
+               Margin="0,0,0,8"/>
+            <Line X1="0" X2="60" Y1="0" Y2="0"
+          Stroke="#BBBBBB"
+          StrokeThickness="2"
+          StrokeDashArray="4,2"
+          HorizontalAlignment="Center"/>
+            <ItemsControl x:Name="RecentFilesList"
+              Grid.Column="1"
+              Grid.Row="2"
+              Margin="0 8 0 20"
+              HorizontalAlignment="Center"
+              Background="Transparent"
+              BorderBrush="Transparent"
+              ItemsSource="{Binding RecentFiles}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel HorizontalAlignment="Center" Margin="2">
+                            <components:RoundedTitleBox Title="{Binding}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
 
         <!-- Continue button -->
         <components:RoundedButton x:Name="ContinueButton"

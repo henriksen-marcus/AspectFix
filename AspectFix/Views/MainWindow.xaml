@@ -7,7 +7,7 @@
         xmlns:components="clr-namespace:AspectFix.Components"
         mc:Ignorable="d"
         Title="AspectFix" 
-        Height="780" Width="504"
+        Height="858" Width="554"
         WindowStyle="None"
         ResizeMode="NoResize"
         Background="Transparent"
@@ -19,6 +19,7 @@
 			<Setter Property="Cursor" Value="Hand"/>
 		</Style>
 	</Window.Resources>
+    <!--Height="780" Width="504"-->
     <!--Height="650" Width="420"-->
     <Border x:Name="MainBorder"
         Background="#272537" 

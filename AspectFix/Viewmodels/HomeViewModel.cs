@@ -12,10 +12,7 @@ namespace AspectFix
     {
         public ObservableCollection<string> RecentFiles { get; set; } = new();
 
-        public void AddFile(string path)
-        {
-            if (RecentFiles.Count == 0) RecentFiles.Add("Recent files");
-            RecentFiles.Add(path);
-        }
+        public void AddFile(string path) => RecentFiles.Add(path);
+        
     }
 }

@@ -16,14 +16,12 @@ using System.Windows.Shapes;
 using AspectFix.Components;
 using AspectFix.Services;
 using AspectFix.Views;
+using static AspectFix.FileProcessor;
 using Path = System.IO.Path;
 using Point = System.Windows.Point;
 
 namespace AspectFix
 {
-    /// <summary>
-    /// Interaction logic for EditView.xaml
-    /// </summary>
     public partial class EditView : UserControl
     {
         private BitmapImage _oldPreview;
@@ -68,47 +66,57 @@ namespace AspectFix
             UpdateCropButton();
         }
 
+
+        // TODO: When rotating, make canvas fit new size to allow resizeAdorner to size properly. Flip width/height of resizeAdorner output.
+
+
         private void EditView_Loaded(object sender, RoutedEventArgs e)
         {
             _resizeAdorner = new ResizeAdorner(ResizeAdorner);
-            _resizeAdorner.MaxWidth = MyCanvas.Width;
-            _resizeAdorner.MaxHeight = MyCanvas.Height;
             _resizeAdorner.ThumbDragged += ResizeAdorner_ThumbDragged;
+
             AdornerLayer.GetAdornerLayer(ResizeAdorner).Add(_resizeAdorner);
 
-            var parentGrid = NewImageContainer.Parent as FrameworkElement;
-            if (parentGrid == null)
+            if (NewImageContainer.Parent is not FrameworkElement parentGrid)
             {
                 MainWindow.Instance.ErrorMessage("Could not initialize cropping system.");
                 MyCanvas.Visibility = Visibility.Collapsed;
                 return;
             }
 
-            double parentWidth = parentGrid.ActualWidth;
-            double parentHeight = parentGrid.ActualHeight;
+            if (ImagePreviewNew.ImageSource is BitmapSource bitmapSource)
+            {
+                // Get the image's original dimensions
+                double imageWidth = bitmapSource.PixelWidth;
+                double imageHeight = bitmapSource.PixelHeight;
 
-            //Console.WriteLine($"Parent Width: {parentWidth}, Parent Height: {parentHeight}");
-            //Console.WriteLine($"Diff: {parentWidth - ImagePreviewNew.ActualWidth}, {parentHeight - ImagePreviewNew.ActualHeight}");
+                double rectangleWidth = NewImageContainer.ActualWidth;
+                double rectangleHeight = NewImageContainer.ActualHeight;
 
-            //MyCanvas.Height = NewImageContainer.ActualHeight;
-            //MyCanvas.Width = NewImageContainer.ActualWidth;
+                double scale = Math.Min(rectangleWidth / imageWidth, rectangleHeight / imageHeight);
 
-            var scaleX = MainWindow.Instance.SelectedFile.Width / NewImageContainer.ActualWidth;
-            var scaleY = MainWindow.Instance.SelectedFile.Height / NewImageContainer.ActualHeight;
+                double scaledWidth = imageWidth * scale;
+                double scaledHeight = imageHeight * scale;
 
-            (int w, int h, _, _) = MainWindow.Instance.SelectedFile.GetCroppedDimensions(GetCropOptions());
+                MyCanvas.Width = scaledWidth;
+                MyCanvas.Height = scaledHeight;
+            }
 
-            _resizeAdorner.Width = w / scaleX;
-            _resizeAdorner.Height = h / scaleY;
+            _resizeAdorner.MaxWidth = MyCanvas.Width;
+            _resizeAdorner.MaxHeight = MyCanvas.Height;
 
-            //Console.WriteLine($"Width {MainWindow.Instance.SelectedFile.Width} Height {MainWindow.Instance.SelectedFile.Height} CroppedW {MainWindow.Instance.SelectedFile.CroppedWidth} CroppedH {MainWindow.Instance.SelectedFile.CroppedHeight}");
-            Canvas.SetLeft(ResizeAdorner, 0/*MyCanvas.ActualWidth / 2 -_resizeAdorner.Width / 2*/);
-            Canvas.SetTop(ResizeAdorner, 0/*MyCanvas.ActualHeight / 2 - _resizeAdorner.Height / 2*/);
+            var cropOptions = GetCropOptions();
+            //if (cropOptions.ShouldCrop) ResetCrop();
+            /*else*/ FillCrop();
+
+            Console.WriteLine($"Set canvas size. Adorner h: {_resizeAdorner.Height} Canvas height:  {MyCanvas.Height}");
         }
+
+        //private void ScaleDimensions(double inWidth, double inHeight, double inX, double inY, )
 
         private void ResizeAdorner_ThumbDragged(object sender, ThumbDraggedEventArgs e)
         {
-            // Note: This was a fucking nightmare
+            // This was a fucking nightmare
 
             double newLeft = Canvas.GetLeft(ResizeAdorner) - e.DeltaX / 2;
             double newTop = Canvas.GetTop(ResizeAdorner) - e.DeltaY / 2;
@@ -199,44 +207,43 @@ namespace AspectFix
         /// </summary>
         private void UpdatePreview()
         {
-            // Delete previous preview before making a new one else we
-            // will get an error because the previous file is in use
-            //if (_newPreview != null)
-            //{
-            //    _newPreview.StreamSource?.Dispose();
-            //    _newPreview = null;
-            //    GC.Collect();
-            //    //File.Delete("preview_new.jpg");
-            //}
+            /* Delete previous preview before making a new one else we
+               will get an error because the previous file is in use */
+            if (_newPreview != null)
+            {
+                _newPreview.StreamSource?.Dispose();
+                _newPreview = null;
+                GC.Collect();
+            }
 
             //if (_currentCropOptions.Equals(default))
             //{
-            //    ImagePreviewNew.Source = _oldPreview;
+            //    ImagePreviewNew.ImageSource = _oldPreview;
             //    return;
             //}
 
             string newPreviewPath = FileProcessor.GetCroppedPreviewImage(MainWindow.Instance.SelectedFile, GetCropOptions());
             if (newPreviewPath != null)
             {
-                //using (FileStream stream = File.OpenRead(newPreviewPath))
-                //using (var memStream = new MemoryStream())
-                //{
-                //    stream.CopyTo(memStream);
-                //    memStream.Seek(0, SeekOrigin.Begin);
-                //    _newPreview = new BitmapImage();
-                //    _newPreview.BeginInit();
-                //    _newPreview.CacheOption = BitmapCacheOption.OnLoad;
-                //    _newPreview.StreamSource = memStream;
-                //    _newPreview.EndInit();
-                //}
+                using (FileStream stream = File.OpenRead(newPreviewPath))
+                using (var memStream = new MemoryStream())
+                {
+                    stream.CopyTo(memStream);
+                    memStream.Seek(0, SeekOrigin.Begin);
+                    _newPreview = new BitmapImage();
+                    _newPreview.BeginInit();
+                    _newPreview.CacheOption = BitmapCacheOption.OnLoad;
+                    _newPreview.StreamSource = memStream;
+                    _newPreview.EndInit();
+                }
 
-                //ImagePreviewNew.ImageSource = _newPreview;
+                ImagePreviewNew.ImageSource = _oldPreview;
 
-                (int w, int h, _, _) = MainWindow.Instance.SelectedFile.GetCroppedDimensions(GetCropOptions());
+                (double w, double h, _, _) = MainWindow.Instance.SelectedFile.GetCroppedDimensions(GetCropOptions());
                 //var h = MainWindow.Instance.SelectedFile.CroppedHeight;
                 CroppedTitle.Title = "Cropped " + w + "x" + h;
             }
-            else MainWindow.Instance.ErrorMessage("Failed to generate preview image :(");
+            else MainWindow.Instance.ErrorMessage("Failed to generate preview image.");
         }
 
         /// <summary>
@@ -263,7 +270,7 @@ namespace AspectFix
             if (vid == null) return false;
 
             var croppedDimensions = vid.GetCroppedDimensions(options);
-            (int, int) croppedDimsArr = (croppedDimensions.Item1, croppedDimensions.Item2);
+            (double, double) croppedDimsArr = (croppedDimensions.Item1, croppedDimensions.Item2);
 
             // We can't process the video if there aren't any changes
             return vid.GetDimensions() != croppedDimsArr || vid.Rotation != 0;
@@ -339,66 +346,77 @@ namespace AspectFix
             // Processing file overlay
             MainWindow.Instance.ToggleOverlay();
 
-            // Update progress timer
-            var timer = new Timer(500); 
-            timer.Elapsed += (timerSender, timerEvent) => 
+            // Insert final size properties based on resize adorner changes
+            var selFile = MainWindow.Instance.SelectedFile;
+            double wScale = _resizeAdorner.Width / MyCanvas.Width;
+            double hScale = _resizeAdorner.Height / MyCanvas.Height;
+            double finalWidth = wScale * selFile.Width;
+            double finalHeight = hScale * selFile.Height;
+
+            //double xScale = Canvas.GetLeft(ResizeAdorner);
+            //double yScale = Canvas.GetTop(ResizeAdorner);
+            //double finalX = xScale * finalWidth;
+            //double finalY = yScale * finalHeight;
+
+            double xRatio = Canvas.GetLeft(ResizeAdorner) / MyCanvas.Width;
+            double yRatio = Canvas.GetTop(ResizeAdorner) / MyCanvas.Height;
+
+            double finalX = xRatio * selFile.Width;
+            double finalY = yRatio * selFile.Height;
+
+
+            Console.WriteLine($"wScale {wScale} hScale {hScale} finalWidth {finalWidth} finalHeight {finalHeight} origWidth {selFile.Width} origHeight {selFile.Height}");
+
+            selFile.FinalWidth = finalWidth;
+            selFile.FinalHeight = finalHeight;
+            selFile.FinalX = finalX;
+            selFile.FinalY = finalY;
+
+            try
             {
-                MainWindow.Instance.LoadingOverlay.UpdateProgress(GetProgress());
-            };
-
-            var options = GetCropOptions();
-            _currentCropOptions = options;
-
-            // Process the file on a separate thread
-            await Task.Run(async () =>
+                await CropWithProgressUIAsync();
+                Console.WriteLine("Cropping complete!");
+            }
+            catch (Exception ex)
             {
-                timer.Start();
-                Task<string> task = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile, options));
-                string path = await task;
-                timer.Stop();
-
-                if (path == null) MainWindow.Instance.ErrorMessage("Failed to crop video.");
-
-                MainWindow.Instance.LoadingOverlay.UpdateProgress(100);
-                await Task.Delay(300);
-            });
-
-            Trace.WriteLine("Est file size new (MB): " + EstimateVideoSize(MainWindow.Instance.SelectedFile));
-            Trace.WriteLine("Est file size old (MB): " + OldEst());
+                Console.WriteLine($"Error: {ex.Message}");
+            }
 
             // Add to recent files list
             MainWindow.Instance.HomeViewModel.AddFile(MainWindow.Instance.SelectedFile.Path);
-            MainWindow.Instance.LoadingOverlay.UpdateProgress(0);
             MainWindow.Instance.ToggleOverlay();
             MainWindow.Instance.FileProcessed();
             Cleanup();
             MainWindow.Instance.ChangeView("Home");
         }
 
-        /// <returns>The estimated progress of processing the video file from 0-100</returns>
-        private int GetProgress()
-        {
-            string newFileName = $"{MainWindow.Instance.SelectedFile.FileName}.cropped{MainWindow.Instance.SelectedFile.Extension}";
-            string newFilePath = Path.Combine(Path.GetDirectoryName(MainWindow.Instance.SelectedFile.Path), newFileName);
-            if (!File.Exists(newFilePath))
-            {
-                Trace.WriteLine("File does not exist");
-                return 0;
-            }
-            FileInfo oldFileInfo = new FileInfo(MainWindow.Instance.SelectedFile.Path);
-            FileInfo newFileInfo = new FileInfo(newFilePath);
+        //void UpdateProgressBar(long size)
+        //{
+        //    MainWindow.Instance.LoadingOverlay.UpdateProgress(100);
+        //}
 
-            var oldDims = MainWindow.Instance.SelectedFile.GetDimensions();
-            var newDims = MainWindow.Instance.SelectedFile.GetCroppedDimensions(_currentCropOptions);
-            var oldArea = oldDims.Item1 * oldDims.Item2;
-            var newArea = newDims.Item1 * newDims.Item2;
-            var percentageChange = (double)newArea / (double)oldArea + 0.1;
-            //Console.WriteLine("Expected file size in MB: " + (double)oldFileInfo.Length/1000000 * percentageChange);
-            //Console.WriteLine("Actual file size in MB: " + (double)newFileInfo.Length/1000000);
-            //Console.WriteLine("Percentage change: " + percentageChange);
-            int progress = FileProcessor.Lerp(0, 100, (double)newFileInfo.Length/((double)oldFileInfo.Length * percentageChange));
-            if (progress > 100) progress = 100;
-            return (int)progress;
+        public async Task CropWithProgressUIAsync()
+        {
+            var options = GetCropOptions();
+            _currentCropOptions = options;
+
+            // Start Crop on a background thread
+            var cropTask = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile, options));
+
+            // Await crop completion (handle exceptions as needed)
+            var result = await cropTask;
+
+            Console.WriteLine("RESULT: " + result);
+
+            if (result == null) // arbitrary minimum
+            {
+                Dispatcher.Invoke(() => MainWindow.Instance.LoadingOverlay.UpdateProgress(0));
+                MainWindow.Instance.ErrorMessage("Cropping failed. Please check your input and try again.");
+            }
+            else
+            {
+                Dispatcher.Invoke(() => MainWindow.Instance.LoadingOverlay.UpdateProgress(100));
+            }
         }
 
         private void RotateLeftButton_OnClick(object sender, RoutedEventArgs e)
@@ -413,58 +431,29 @@ namespace AspectFix
             MainWindow.Instance.SelectedFile?.AddRotation(90);
             UpdatePreview();
             UpdateCropButton();
-        }
 
-        public double OldEst()
-        {
-            FileInfo oldFileInfo = new FileInfo(MainWindow.Instance.SelectedFile.Path);
-
-            var oldDims = MainWindow.Instance.SelectedFile.GetDimensions();
-            var newDims = MainWindow.Instance.SelectedFile.GetCroppedDimensions(_currentCropOptions);
-            var oldArea = oldDims.Item1 * oldDims.Item2;
-            var newArea = newDims.Item1 * newDims.Item2;
-            var percentageChange = (double)newArea / (double)oldArea + 0.1;
-            //Console.WriteLine("Expected file size in MB: " + (double)oldFileInfo.Length/1000000 * percentageChange);
-            //Console.WriteLine("Actual file size in MB: " + (double)newFileInfo.Length/1000000);
-            //Console.WriteLine("Percentage change: " + percentageChange);
-            return (double)oldFileInfo.Length / 1000000 * percentageChange;
-        }
-
-        public static double EstimateVideoSize(VideoFile videoFile)
-        {
-            // Get the original video bitrate (in kbps) using your method or FFmpeg
-            double originalVideoBitrate = FileProcessor.GetVideoBitrate(videoFile.Path); // in kbps
-            double originalAudioBitrate = FileProcessor.GetAudioBitrate(videoFile.Path); // in kbps
-
-            // If trimming is applied, calculate the new duration
-            double newDurationInSeconds = (videoFile.TrimEnd - videoFile.TrimStart).TotalSeconds;
-
-            // If no trimming, use the full length
-            if (newDurationInSeconds <= 0 || newDurationInSeconds > videoFile.Length)
+            var imageBrush = ImagePreviewNew;
+            if (imageBrush.ImageSource is BitmapSource bitmapSource)
             {
-                newDurationInSeconds = videoFile.Length;
+                // Get the image's original dimensions
+                double imageWidth = bitmapSource.PixelWidth;
+                double imageHeight = bitmapSource.PixelHeight;
+
+                double rectangleWidth = NewImageContainer.ActualWidth;
+                double rectangleHeight = NewImageContainer.ActualHeight;
+
+                double scale = Math.Min(rectangleWidth / imageWidth, rectangleHeight / imageHeight);
+
+                double scaledWidth = imageWidth * scale;
+                double scaledHeight = imageHeight * scale;
+
+                MyCanvas.Width = scaledWidth;
+                MyCanvas.Height = scaledHeight;
             }
 
-            // Scale the video bitrate based on cropping (adjust the bitrate for new resolution)
-            double originalResolution = videoFile.Width * videoFile.Height;
-            double croppedResolution = videoFile.CroppedWidth * videoFile.CroppedHeight;
-
-            // Adjust the video bitrate based on the ratio of the cropped resolution to the original resolution
-            double scaledVideoBitrate = originalVideoBitrate * (croppedResolution / originalResolution);
-
-            // Convert bitrates to bytes per second (bps = kbps * 1000 / 8)
-            double videoBytesPerSecond = scaledVideoBitrate * 1000 / 8;
-            double audioBytesPerSecond = originalAudioBitrate * 1000 / 8;
-
-            // Estimate the file size in bytes
-            double estimatedSizeInBytes = newDurationInSeconds * (videoBytesPerSecond + audioBytesPerSecond);
-
-            // Convert bytes to megabytes (MB = bytes / (1024 * 1024))
-            double estimatedSizeInMegabytes = estimatedSizeInBytes / (1024 * 1024);
-
-            return estimatedSizeInMegabytes;
+            _resizeAdorner.MaxWidth = MyCanvas.Width;
+            _resizeAdorner.MaxHeight = MyCanvas.Height;
         }
-
         
         private void Rectangle_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -514,6 +503,71 @@ namespace AspectFix
         {
             if (value < min) return min;
             return value > max ? max : value;
+        }
+
+        private void ResetCropButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            //var scaleX = MainWindow.Instance.SelectedFile.Width / NewImageContainer.ActualWidth;
+            //var scaleY = MainWindow.Instance.SelectedFile.Height / NewImageContainer.ActualHeight;
+
+            //(double w, double h, _, _) = MainWindow.Instance.SelectedFile.GetCroppedDimensions(GetCropOptions());
+
+            //_resizeAdorner.overrideWidth(w / scaleX);
+            //_resizeAdorner.overrideHeight(h / scaleY);
+
+            //Canvas.SetLeft(ResizeAdorner, MyCanvas.ActualWidth / 2 - _resizeAdorner.Width / 2);
+            //Canvas.SetTop(ResizeAdorner, MyCanvas.ActualHeight / 2 - _resizeAdorner.Height / 2);
+
+            ResetCrop();
+        }
+
+        private void FillCropButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            FillCrop();
+        }
+
+        private void FillCrop()
+        {
+            var imageBrush = ImagePreviewOld;
+
+            // Get the image's original dimensions
+            double imageWidth = ImagePreviewOld.ActualWidth;
+            double imageHeight = ImagePreviewOld.ActualHeight;
+
+            double rectangleWidth = NewImageContainer.ActualWidth;
+            double rectangleHeight = NewImageContainer.ActualHeight;
+
+            double scale = Math.Min(rectangleWidth / imageWidth, rectangleHeight / imageHeight);
+
+            double scaledWidth = imageWidth * scale;
+            double scaledHeight = imageHeight * scale;
+
+            MyCanvas.Width = scaledWidth;
+            MyCanvas.Height = scaledHeight;
+            
+
+            Canvas.SetLeft(ResizeAdorner, 0);
+            Canvas.SetTop(ResizeAdorner, 0);
+
+            _resizeAdorner.overrideWidth(MyCanvas.Width);
+            _resizeAdorner.overrideHeight(MyCanvas.Height);
+        }
+
+        private void ResetCrop()
+        {
+            (double w, double h, _, _) = MainWindow.Instance.SelectedFile.GetCroppedDimensions(GetCropOptions());
+
+            double scale2 = Math.Min(
+                NewImageContainer.ActualWidth / MainWindow.Instance.SelectedFile.Width,
+                NewImageContainer.ActualHeight / MainWindow.Instance.SelectedFile.Height
+            );
+
+            _resizeAdorner.overrideWidth(w * scale2);
+            _resizeAdorner.overrideHeight(h * scale2);
+
+            //Console.WriteLine($"Width {MainWindow.Instance.SelectedFile.Width} Height {MainWindow.Instance.SelectedFile.Height} CroppedW {MainWindow.Instance.SelectedFile.CroppedWidth} CroppedH {MainWindow.Instance.SelectedFile.CroppedHeight}");
+            Canvas.SetLeft(ResizeAdorner, MyCanvas.Width / 2 - _resizeAdorner.Width / 2);
+            Canvas.SetTop(ResizeAdorner, MyCanvas.Height / 2 - _resizeAdorner.Height / 2);
         }
     }
 }

@@ -4,7 +4,9 @@ using System.IO;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Shapes;
 using AspectFix.Components;
+using AspectFix.Services;
 using Path = System.IO.Path;
 
 namespace AspectFix.Views
@@ -14,7 +16,7 @@ namespace AspectFix.Views
         public MainViewModel MainViewModel  { get; private set; }
         public HomeViewModel HomeViewModel { get; private set; }
         public EditViewModel EditViewModel  { get; private set; }
-        public VideoFile SelectedFile       { get; private set; }
+        public VideoFile SelectedFile { get; private set; }
         public static MainWindow Instance   { get; private set; }
 
         /// <summary>
@@ -38,7 +40,7 @@ namespace AspectFix.Views
             Instance = this;
             MainViewModel = new MainViewModel();
             HomeViewModel = (HomeViewModel)MainViewModel.SelectedViewModel;
-            EditViewModel = new EditViewModel();
+            EditViewModel = /*(EditViewModel)MainViewModel.SelectedViewModel;*/new EditViewModel();
             DataContext = MainViewModel;
 
             if (!File.Exists("ffmpeg.exe") || !File.Exists("ffprobe.exe"))
@@ -48,6 +50,12 @@ namespace AspectFix.Views
             }
 
             Loaded += MainWindow_Loaded;
+
+
+            //SelectedFile = new VideoFile(@"C:\Users\Zipur\Videos\vlc-record-2025-01-17-22h15m59s-playlist.m3u8-.mp4");
+            //SelectedFile = new VideoFile(@"F:\YoutubeVideos\aspectTest.mp4");
+            //SelectedFile = new VideoFile(@"F:\YoutubeVideos\Color Matte_1.mp4");
+            //SelectedFile = new VideoFile(@"C:\Users\Zipur\Downloads\Iron Man 2 (2010) [2160p] [4K] [BluRay] [5.1] [YTS.MX]\Iron.Man.2.2010.2160p.4K.BluRay.x265.10bit.AAC5.1-[YTS.MX].mkv");
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)

@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:AspectFix"
 			 xmlns:components="clr-namespace:AspectFix.Components"
              mc:Ignorable="d" 
-             d:DesignHeight="575" d:DesignWidth="420"
+             d:DesignHeight="780" d:DesignWidth="504"
              Background="Transparent">
     <UserControl.Resources>
     </UserControl.Resources>
@@ -66,15 +66,15 @@
                       MouseDown="Rectangle_PreviewMouseDown"
                       MouseMove="Rectangle_PreviewMouseMove"
                       MouseUp="Rectangle_PreviewMouseUp"
-                      >
+                >
 
                     <!-- Highlighting border -->
                     <Rectangle
                         RadiusX="4" 
                         RadiusY="4" 
-                        StrokeThickness="2" 
+                        StrokeThickness="1" 
                         Fill="Transparent" 
-                        Stroke="Orange" 
+                        Stroke="Black" 
                         Opacity="1">
                         <Rectangle.Effect>
                             <DropShadowEffect 
@@ -111,12 +111,34 @@
                                        Visibility="Visible"
                                        Margin="0 35 0 0"
                                        HorizontalAlignment="Center"/>
+        <components:RoundedImageButton x:Name="ResetCropButton"  
+                                       Grid.Row="1"
+                                       Grid.Column="2"
+                                       Width="30"
+                                       Height="30"
+                                       ImageSource="../Images/reset.png"
+                                       Click="ResetCropButton_OnClick"
+                                       Visibility="Visible"
+                                       Margin="0 0 0 80"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Bottom"/>
+        <components:RoundedImageButton x:Name="FillCropButton"  
+                                       Grid.Row="1"
+                                       Grid.Column="2"
+                                       Width="30"
+                                       Height="30"
+                                       ImageSource="../Images/resize.png"
+                                       Click="FillCropButton_OnClick"
+                                       Visibility="Visible"
+                                       Margin="0 0 0 26"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Bottom"/>
 
         <StackPanel Grid.Row="2"
                     Grid.Column="1"
                     Orientation="Vertical"
                     Margin="0 10 0 0">
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <TextBlock Text="Crop mode:"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
@@ -174,6 +196,12 @@
                     x:Name="Plus"
                     Margin="2 0 2 0"
                     ImageSource="../Images/plus.png"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0, 20, 0, 0">
+                <Label Content="Start:" Foreground="White"/>
+                <TextBlock x:Name="StartTrim"  IsEnabled='True' Background="Gray" Width="80"/>
+                <Label Content="End:" Foreground="White" />
+                <TextBlock x:Name="EndTrim" Background="Gray" IsEnabled='True' Width="80"/>
             </StackPanel>
         </StackPanel>
 

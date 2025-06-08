@@ -16,12 +16,21 @@ namespace AspectFix.Components
         private static readonly double AnimationScale = 1.04d;
 
         public static readonly DependencyProperty IconRotationProperty = DependencyProperty.Register(
-            "IconRotation", typeof(int), typeof(RoundedImageButton), new PropertyMetadata(0));
+            nameof(IconRotation), typeof(int), typeof(RoundedImageButton), new PropertyMetadata(0));
 
         public int IconRotation
         {
             get => (int)GetValue(IconRotationProperty); 
             set => SetValue(IconRotationProperty, value);
+        }
+
+        public static readonly DependencyProperty IconScaleProperty = DependencyProperty.Register(
+            nameof(IconScale), typeof(int), typeof(RoundedImageButton), new PropertyMetadata(1));
+
+        public int IconScale
+        {
+            get => (int)GetValue(IconScaleProperty);
+            set => SetValue(IconScaleProperty, value);
         }
 
         public static readonly DependencyProperty FontSizeProperty = DependencyProperty.Register(

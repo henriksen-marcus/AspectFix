@@ -1,19 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
-using System.Timers;
-using System.Threading;
-using System.Xml.Linq;
-using System.ComponentModel;
-using System.Windows.Media.Media3D;
 
 namespace AspectFix.Components
 {
@@ -52,12 +41,12 @@ namespace AspectFix.Components
         public new double Width
         {
             get => elm.Width;
-            set => elm.Width = value;
+            set => elm.Width = Services.Utils.Clamp(value, MinWidth, MaxWidth);
         }
         public new double Height
         {
             get => elm.Height;
-            set => elm.Height = value;
+            set => elm.Height = Services.Utils.Clamp(value, MinHeight, MaxHeight);
         }
 
         public event EventHandler<ThumbDraggedEventArgs> ThumbDragged;
@@ -81,6 +70,22 @@ namespace AspectFix.Components
             _adornerVisuals.Add(_bottomRight);
 
             elm = (FrameworkElement)AdornedElement;
+        }
+
+        /// <summary>
+        /// Set the width directly without checking for validity.
+        /// </summary>
+        public void overrideWidth(double newWidth)
+        {
+            elm.Width = newWidth;
+        }
+
+        /// <summary>
+        /// Set the height directly without checking for validity.
+        /// </summary>
+        public void overrideHeight(double newHeight)
+        {
+            elm.Height = newHeight;
         }
 
         //private Task HandleTimer()

@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using System.Windows;
 using System.Drawing;
 using System.Globalization;
-using System.Windows.Media.Media3D;
+using AspectFix.Services;
 using AspectFix.Views;
+using System.Text.RegularExpressions;
+using System.Windows.Shapes;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace AspectFix
 {
@@ -53,7 +53,7 @@ namespace AspectFix
 
         private const string ffmpegPath = "ffmpeg.exe";
         private const string ffprobePath = "ffprobe.exe";
-        private const bool DebugEnabled = false;
+        private const bool DebugEnabled = true;
         private const string FilenameAddition = "aspectfix";
 
         public static (int, int) GetVideoDimensions(string videoPath)
@@ -62,15 +62,15 @@ namespace AspectFix
 
             try
             {
-                Trace.WriteLine(output);
+                Trace.WriteLine("FFPROBE OUTPUT: " + output);
                 string firstLine = output.Split('\n')[0];
-                Trace.WriteLine(firstLine);
+                Trace.WriteLine("FFPROBE FIRST LINE: " + firstLine);
 
                 // Parse the output to retrieve the width and height values
                 string[] dimensions = firstLine.Trim().Split('x');
 
                 foreach (string i in dimensions )
-                    Trace.WriteLine(i);
+                    Trace.WriteLine("DIMS PRINT: " + i);
 
                 int width = int.Parse(dimensions[0]);
                 int height = int.Parse(dimensions[1]);
@@ -78,7 +78,7 @@ namespace AspectFix
             }
             catch (Exception e)
             {
-                MainWindow.Instance.ErrorMessage($"Error in GetVideoDimensions(): {e.Message}");
+                Console.WriteLine($"Error in GetVideoDimensions(): {e.Message}");
             }
 
             return (0, 0);
@@ -143,7 +143,7 @@ namespace AspectFix
             }
             catch (Exception e)
             {
-                MainWindow.Instance.ErrorMessage("Exception: " + e.Message);
+                Console.WriteLine("Exception: " + e.Message);
             }
 
             return length;
@@ -187,19 +187,20 @@ namespace AspectFix
 
         public static string Crop(VideoFile video, CropOptions options)
         {
-            Runffmpeg(FFmpegCommand.Build(video, options));
-
-            Trace.WriteLine("Process:   " + FFmpegCommand.Build(video, options));
+            bool ret = Runffmpeg(FFmpegCommand.BuildArgument(video, options) + " -progress pipe:1 -nostats", video.Length.TotalMilliseconds, percent =>
+            {
+                MainWindow.Instance.LoadingOverlay.Dispatcher.Invoke(() => MainWindow.Instance.LoadingOverlay.UpdateProgress((int)percent));
+            });
 
             return File.Exists(video.NewPath) ? video.NewPath : null;
         }
 
         public static void CropPrint(VideoFile video, CropOptions options)
         {
-            (int width, int height, int x, int y) = video.GetCroppedDimensions(options);
+            (double width, double height, double x, double y) = video.GetCroppedDimensions(options);
 
             string newFileName = $"{video.FileName}.cropped{video.Extension}";
-            string newFilePath = Path.Combine(Path.GetDirectoryName(video.Path), newFileName);
+            string newFilePath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(video.Path), newFileName);
             string position = (x != 0 || y != 0) ? (x + ":" + y) : null;
             string videoFilters = $"-filter:v ";
 
@@ -228,32 +229,35 @@ namespace AspectFix
         /// if no preview could be generated</returns>
         public static string GetPreviewImage(VideoFile video)
         {
-            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old.jpg");
+            string savePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "preview_old.jpg");
             string scale = video.Orientation == Orientation.Landscape ? "-1:360" : "360:-1";
-            string arguments = $"-y -noaccurate_seek -copyts -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
-                               $"-frames:v 1 -vf \"scale={video.GetLQScale(video.Width, video.Height)}\" \"{savePath}\"";
+
+            string arguments = $"-noaccurate_seek -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
+                               $"-frames:v 1 -q:v 1 -vf \"scale={video.GetLQScale(video.Width, video.Height)}\" \"{savePath}\""; 
+
             Runffmpeg(arguments);
             return File.Exists(savePath) ? savePath : null;
         }
 
         /// <returns>Path to a full resolution, uncropped, non-black frame of the video. May be null
-        /// if no preview could be generated</returns>
+        /// if no preview could be generated.</returns>
         public static string GetHQPreviewImage(VideoFile video)
         {
-            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_old_hq.jpg");
-            string arguments = $"-y -noaccurate_seek -copyts -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
-                               $"-frames:v 1 \"{savePath}\"";
+            string savePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "preview_old_hq.jpg");
+            string arguments = $"-noaccurate_seek -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
+                               $"-frames:v 1 -q:v 1 \"{savePath}\"";
             Runffmpeg(arguments);
+
             return File.Exists(savePath) ? savePath : null;
         }
 
 
         /// <returns>Path to a low resolution, cropped and rotated, non-black frame of the video. May be null
-        /// if no preview could be generated</returns>
+        /// if no preview could be generated.</returns>
         public static string GetCroppedPreviewImage(VideoFile video, CropOptions options)
         {
-            (int width, int height, int x, int y) = video.GetCroppedDimensions(options);
-            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "preview_new.jpg");
+            (double width, double height, double x, double y) = video.GetCroppedDimensions(options);
+            string savePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "preview_new.jpg");
             string position = (x != 0 || y != 0) ? (x + ":" + y) : "";
             string videoFilters = $"-vf ";
 
@@ -268,6 +272,9 @@ namespace AspectFix
 
             if (options.ShouldCrop == false && rotateCommand == null) videoFilters = "";
 
+            Console.WriteLine("NON BLACK FRAME: " + video.NonBlackFrame.ToString(CultureInfo.InvariantCulture));
+            Console.WriteLine("Video: " + video.ToString());
+
             string arguments = $"-y -noaccurate_seek -copyts -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\"  " +
                                $"-frames:v 1 {videoFilters} \"{savePath}\"";
             Runffmpeg(arguments);
@@ -281,7 +288,7 @@ namespace AspectFix
         /// <returns>The output</returns>
         private static string Runffprobe(string arguments)
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo();
+            ProcessStartInfo startInfo = new();
             startInfo.FileName = ffprobePath;
             startInfo.Arguments = arguments;
             startInfo.RedirectStandardOutput = true;
@@ -301,7 +308,7 @@ namespace AspectFix
             }
             catch (Exception ex)
             {
-                MainWindow.Instance.ErrorMessage("Exception: " + ex.Message);
+                Console.WriteLine("Exception: " + ex.Message);
             }
             finally
             {
@@ -318,43 +325,82 @@ namespace AspectFix
             {
                 Console.WriteLine(output);
                 Console.WriteLine("Exit code: " + exitCode);
-                MainWindow.Instance.ErrorMessage("Runffprobe output: " + output);
-                MainWindow.Instance.ErrorMessage("Runffprobe exit code: " + exitCode);
+                Console.WriteLine("Runffprobe output: " + output);
+                Console.WriteLine("Runffprobe exit code: " + exitCode);
             }
 
             return output;
         }
 
-        private static bool Runffmpeg(string arguments)
+        private static bool Runffmpeg(string arguments, double totalDurationMs = 0, Action<double> onProgress = null)
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo();
+            ProcessStartInfo startInfo = new();
             startInfo.FileName = ffmpegPath;
             startInfo.Arguments = arguments;
-            startInfo.RedirectStandardOutput = DebugEnabled;
-            startInfo.RedirectStandardError = DebugEnabled;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;
 
-            //MainWindow.Instance.ErrorMessage("FFMPEG ARGUMENTS: " +arguments);
+            //Console.WriteLine("FFMPEG ARGUMENTS: " +arguments);
 
             // Start the process
-            Process process = new Process();
+            Process process = new();
             process.StartInfo = startInfo;
-            int exitCode = 1;
+            int exitCode = -1;
             string output = null;
             string err = null;
 
             try
             {
+                DateTime startWallClock = DateTime.Now;
+
                 process.Start();
                 MainWindow.Instance.CurrentPID = process.Id;
-                output = DebugEnabled ? process.StandardOutput.ReadToEnd() : null;
-                err = DebugEnabled ? process.StandardError.ReadToEnd() : null;
+
+                // For debug output
+                var errorTask = DebugEnabled ? process.StandardError.ReadToEndAsync() : Task.FromResult<string>(null);
+
+                // Read progress from stdout in real time
+                while (!process.StandardOutput.EndOfStream)
+                {
+                    var line = process.StandardOutput.ReadLine();
+                    if (DebugEnabled) Console.WriteLine(line);
+
+                    if (line.StartsWith("out_time_ms=") && onProgress != null)
+                    {
+                        if (long.TryParse(line.Substring("out_time_ms=".Length), out long outTimeUs))
+                        {
+                            double processedMs = Utils.Clamp(outTimeUs, 0, double.MaxValue) / 1000.0;
+                            double percent = processedMs / totalDurationMs;
+
+                            // Avoid division by zero
+                            if (percent > 0 && percent <= 1)
+                            {
+                                TimeSpan elapsed = DateTime.Now - startWallClock;
+                                double estimatedTotalMs = elapsed.TotalMilliseconds / percent;
+                                double msLeft = estimatedTotalMs - elapsed.TotalMilliseconds;
+                                msLeft = Math.Max(0, msLeft);
+                                TimeSpan timeLeft = TimeSpan.FromMilliseconds(msLeft);
+                                onProgress(timeLeft.TotalSeconds);
+                            }
+                        }
+                    }
+                    else if (line.StartsWith("progress=end") && onProgress != null)
+                    {
+                        onProgress(0);
+                    }
+                }
+
+                // Read output and error ASYNCHRONOUSLY
+                var outputTask = DebugEnabled ? process.StandardOutput.ReadToEndAsync() : Task.FromResult<string>(null);
                 process.WaitForExit();
+                output = outputTask.Result;
+                err = errorTask.Result;
             }
             catch (Exception e)
             {
-                MainWindow.Instance.ErrorMessage("Runffmpeg catch: " + e.Message);
+                Console.WriteLine("Runffmpeg catch: " + e.Message);
             }
             finally
             {
@@ -374,11 +420,11 @@ namespace AspectFix
             {
                 Trace.WriteLine(output);
                 Trace.WriteLine("Exit code: " + exitCode);
-                //MainWindow.Instance.ErrorMessage("Runffmpeg output: " + output);
-                //MainWindow.Instance.ErrorMessage("Runffmpeg error: " + err);
-                //MainWindow.Instance.ErrorMessage("Runffmpeg exit code: " + exitCode);
+                Trace.WriteLine("Runffmpeg output: " + output);
+                Trace.WriteLine("Runffmpeg error: " + err);
+                Trace.WriteLine("Runffmpeg exit code: " + exitCode);
             }
-            
+
             return exitCode == 0;
         }
 
@@ -399,7 +445,7 @@ namespace AspectFix
 
         public static bool IsVideoFile(string filePath)
         {
-            string extension = Path.GetExtension(filePath);
+            string extension = System.IO.Path.GetExtension(filePath);
 
             // Supported extensions by ffmpeg
             string[] supportedVideoTypes = {
@@ -455,33 +501,70 @@ namespace AspectFix
             return (int)(a * (1 - t) + b * t);
         }
 
+        /// <summary>
+        /// Uses ffmpeg's built-in algorithm for detecting black frames to find the best time for a preview frame.
+        /// </summary>
+        /// <returns>The time in seconds of the least black frame found.</returns>
         public static double GetNonBlackFrameTime(VideoFile video)
         {
-            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "non_black_frame.jpg");
-            double frameTime = 0;
+            string args = $"-hide_banner -i \"{video.Path}\" -vf blackdetect=d=0.1:pic_th=0.92 -an -f null -";
 
-            // We try 3 times to get a valid one
-            for (int i = 0; i < 3; i++)
+            var psi = new ProcessStartInfo
             {
-                frameTime = Lerp(0, video.Length, i / 3.0);
-                string arguments =
-                    $"-y -noaccurate_seek -copyts -ss {frameTime.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\" -frames:v 1 \"{savePath}\"";
+                FileName = ffmpegPath,
+                Arguments = args,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
-                Runffmpeg(arguments);
+            /* Out goal with ffmpeg's blackdetect is to find the end of the first black segment,
+               and the start of the second black segment or end of video. The segment between 
+               those two times is considered non-black. */
 
-                if (File.Exists(savePath))
+            double start = 0;
+            double end = 0;
+
+            var regexStart = new Regex(@"black_start:([\d\.]+)");
+            var regexEnd = new Regex(@"black_end:([\d\.]+)");
+
+            using (var process = Process.Start(psi))
+            {
+                string line;
+                while ((line = process.StandardError.ReadLine()) != null)
                 {
-                    // Check if image is black at center
-                    Bitmap image = new Bitmap(savePath);
-                    var brightness = image.GetPixel(image.Size.Width / 2, image.Size.Height / 2).GetBrightness();
-                    image.Dispose();
-                    File.Delete(savePath);
-                    if (brightness > 0.2) return frameTime;
+                    if (line.Contains("black_start"))
+                    {
+                        Match matchStart;
+                        Match matchEnd;
+
+
+                        if (end == 0) {
+                            matchEnd = regexEnd.Match(line);
+                            if (matchEnd.Success) end = double.Parse(matchEnd.Groups[1].Value, CultureInfo.InvariantCulture);
+                            
+                            continue;
+                        }
+
+                        if (start == 0)
+                        {
+                            matchStart = regexStart.Match(line);
+                            if (matchStart.Success) start = double.Parse(matchStart.Groups[1].Value, CultureInfo.InvariantCulture);
+                            break;
+                        }
+                    }
                 }
+                process.WaitForExit();
             }
 
-            return video.Length / 2;
+            // Check if we were able to find the beginning of another black section, otherwise start == 0
+            if (start < end) start = video.Length.TotalSeconds;
+
+            return end + ((start - end) / 2);
         }
+
+
 
         public static double GetVideoBitrate(string path)
         {
@@ -502,9 +585,10 @@ namespace AspectFix
         {
             var output = Runffprobe($"-v error -select_streams a:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 \"{path}\"");
 
-            // Parse output to double (bitrate is returned in bits per second, converting to kbps)
-            if (double.TryParse(output, out double bitrate))
+            if (string.IsNullOrEmpty(output)) return 0; // No audio
+            else if (double.TryParse(output, out double bitrate))
             {
+                // Parse output to double (bitrate is returned in bits per second, converting to kbps)
                 return bitrate / 1000; // Return bitrate in kbps
             }
             else
@@ -520,14 +604,14 @@ namespace AspectFix
         {
             string GetName(string addition)
             {
-                return Path.Combine(Path.GetDirectoryName(path) ?? string.Empty,
-                    Path.GetFileNameWithoutExtension(path) + "." + addition + Path.GetExtension(path));
+                return System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path) ?? string.Empty,
+                    System.IO.Path.GetFileNameWithoutExtension(path) + "." + addition + System.IO.Path.GetExtension(path));
             }
 
             string finalName = path;
 
             // If already processed and contains the addition
-            if (path.Contains(FilenameAddition + Path.GetExtension(path)))
+            if (path.Contains(FilenameAddition + System.IO.Path.GetExtension(path)))
             {
                 path = path.Replace("." + FilenameAddition, "");
 
@@ -541,9 +625,10 @@ namespace AspectFix
                     else break;
                 }
 
-                // if you got to this point, what the fuck
                 if (File.Exists(finalName))
                 {
+                    // if you got to this point, what the fuck
+
                     Random rand = new Random();
                     string addition = "";
 

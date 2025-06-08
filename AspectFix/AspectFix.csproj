@@ -88,7 +88,9 @@
       <DependentUpon>WindowTitleBox.xaml</DependentUpon>
     </Compile>
     <Compile Include="Components\ResizeAdorner.cs" />
+    <Compile Include="Services\CountToVisibilityConverter.cs" />
     <Compile Include="Services\FFmpegCommand.cs" />
+    <Compile Include="Services\Utils.cs" />
     <Compile Include="Views\Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>
     </Compile>
@@ -291,6 +293,10 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\warning.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\reset.png" />
+    <Resource Include="Images\resize.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
