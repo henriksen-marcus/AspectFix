@@ -597,31 +597,38 @@ namespace AspectFix
             }
         }
 
+
         /// <summary>
-        /// Returns a new unique name to the given file.
+        /// Generates a new file path by appending a unique filename addition to the original file name.
         /// </summary>
+        /// <param name="path">Path to the input file.</param>
+        /// <returns>A new unique name to the new file.</returns>
         public static string GetNewFilePath(string path)
         {
+            // Rule 1: Add the FilenameAddition to the filename if it does not already contain it.
+            // Rule 2: If the file already has the FilenameAddition, do not add it again.
+            // This means we have to clean up the filename from FilenameAddition first, because GetName() needs to work from scratch each time.
+            // Rule 3: If the file already exists, add a _2, _3, etc. to the filename until it is unique.
+
+            /// returns>The absolute path to the new filename including the addition.</returns>
             string GetName(string addition)
             {
-                return System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path) ?? string.Empty,
-                    System.IO.Path.GetFileNameWithoutExtension(path) + "." + addition + System.IO.Path.GetExtension(path));
+                string directory = System.IO.Path.GetDirectoryName(path) ?? string.Empty;
+                string filename = System.IO.Path.GetFileNameWithoutExtension(path);
+                filename += "." + addition;
+                string extension = System.IO.Path.GetExtension(path);
+                return System.IO.Path.Combine(directory, filename + extension);
             }
 
-            string finalName = path;
+            path = path.Replace($".{FilenameAddition}", ""); // Remove any existing addition to prevent duplicates
+            string finalName = GetName(FilenameAddition);
 
-            // If already processed and contains the addition
-            if (path.Contains(FilenameAddition + System.IO.Path.GetExtension(path)))
+            if (File.Exists(finalName))
             {
-                path = path.Replace("." + FilenameAddition, "");
-
                 // Prevent overwriting of previously processed files
                 for (int i = 2; i < 100; i++)
                 {
-                    if (File.Exists(finalName))
-                    {
-                        finalName = GetName($".{FilenameAddition}_" + i);
-                    }
+                    if (File.Exists(finalName)) finalName = GetName($"{FilenameAddition}_{i}");
                     else break;
                 }
 
@@ -629,18 +636,14 @@ namespace AspectFix
                 {
                     // if you got to this point, what the fuck
 
-                    Random rand = new Random();
+                    Random rand = new();
                     string addition = "";
 
                     for (int i = 0; i < 10; i++)
                         addition += rand.Next(0, 9);
 
-                    finalName = GetName($".{FilenameAddition}_" + addition);
+                    finalName = GetName($"{FilenameAddition}_{addition}");
                 }
-            }
-            else
-            {
-                finalName = GetName(FilenameAddition);
             }
 
             return finalName;
