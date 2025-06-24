@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
@@ -50,6 +51,7 @@ namespace AspectFix.Components
         }
 
         public event EventHandler<ThumbDraggedEventArgs> ThumbDragged;
+        public event EventHandler ThumbDragCompleted;
 
         public ResizeAdorner(UIElement adornerElement) : base(adornerElement)
         {
@@ -63,6 +65,11 @@ namespace AspectFix.Components
             _topRight.DragDelta += TopRight_DragDelta;
             _bottomLeft.DragDelta += BottomLeft_DragDelta;
             _bottomRight.DragDelta += BottomRight_DragDelta;
+
+            _topLeft.DragCompleted += Thumb_DragCompleted;
+            _topRight.DragCompleted += Thumb_DragCompleted;
+            _bottomLeft.DragCompleted += Thumb_DragCompleted;
+            _bottomRight.DragCompleted += Thumb_DragCompleted;
 
             _adornerVisuals.Add(_topLeft);
             _adornerVisuals.Add(_topRight);
@@ -160,6 +167,11 @@ namespace AspectFix.Components
             var newHeight = elm.Height + e.VerticalChange;
             ThumbDragged?.Invoke(this, new ThumbDraggedEventArgs(newWidth - elm.Width, newHeight - elm.Height, 3));
             SetSize(newWidth, newHeight);
+        }
+
+        private void Thumb_DragCompleted(object sender, DragCompletedEventArgs e)
+        {
+            ThumbDragCompleted?.Invoke(this, EventArgs.Empty);
         }
 
         private void SetSize(double newWidth, double newHeight)

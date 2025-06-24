@@ -134,6 +134,7 @@ namespace AspectFix.Components
 
             Storyboard sb = this.FindResource("ButtonEnabled") as Storyboard;
             if (sb != null) { BeginStoryboard(sb); }
+            /*System.InvalidOperationException: ''Children' property value in the path '(0).(1)[0].(2)' points to immutable instance of 'System.Windows.Media.TransformCollection'.'*/
         }
     }
 }

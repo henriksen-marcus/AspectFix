@@ -7,14 +7,14 @@ using System.Globalization;
 using AspectFix.Services;
 using AspectFix.Views;
 using System.Text.RegularExpressions;
-using System.Windows.Shapes;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 
-namespace AspectFix
+namespace AspectFix.Services
 {
     public class FileProcessor
     {
+
+        [Obsolete("CropOptions is deprecated and will be removed in a future release.")]
         public struct CropOptions
         {
             public bool IsAuto;
@@ -22,7 +22,7 @@ namespace AspectFix
             public int Iterations;
 
             // Operator overloads
-            public static bool operator == (CropOptions a, CropOptions b)
+            public static bool operator ==(CropOptions a, CropOptions b)
             {
                 return a.IsAuto == b.IsAuto && a.ShouldCrop == b.ShouldCrop && a.Iterations == b.Iterations;
             }
@@ -62,16 +62,10 @@ namespace AspectFix
 
             try
             {
-                Trace.WriteLine("FFPROBE OUTPUT: " + output);
                 string firstLine = output.Split('\n')[0];
-                Trace.WriteLine("FFPROBE FIRST LINE: " + firstLine);
 
                 // Parse the output to retrieve the width and height values
                 string[] dimensions = firstLine.Trim().Split('x');
-
-                foreach (string i in dimensions )
-                    Trace.WriteLine("DIMS PRINT: " + i);
-
                 int width = int.Parse(dimensions[0]);
                 int height = int.Parse(dimensions[1]);
                 return (width, height);
@@ -84,7 +78,7 @@ namespace AspectFix
             return (0, 0);
         }
 
-        /// <returns>How many pixels on (left, top, right, bottom) are black</returns>
+        /// <returns>How many pixels on (left, top, right, bottom) are black.</returns>
         public static (int, int, int, int) GetBlackPixels(VideoFile video)
         {
             var path = GetHQPreviewImage(video);
@@ -185,9 +179,9 @@ namespace AspectFix
         //    return File.Exists(newFilePath) ? newFilePath : null;
         //}
 
-        public static string Crop(VideoFile video, CropOptions options)
+        public static string Crop(VideoFile video)
         {
-            bool ret = Runffmpeg(FFmpegCommand.BuildArgument(video, options) + " -progress pipe:1 -nostats", video.Length.TotalMilliseconds, percent =>
+            bool ret = Runffmpeg(FFmpegCommand.BuildArgument(video) + " -progress pipe:1 -nostats", video.Length.TotalMilliseconds, percent =>
             {
                 MainWindow.Instance.LoadingOverlay.Dispatcher.Invoke(() => MainWindow.Instance.LoadingOverlay.UpdateProgress((int)percent));
             });
@@ -288,15 +282,20 @@ namespace AspectFix
         /// <returns>The output</returns>
         private static string Runffprobe(string arguments)
         {
-            ProcessStartInfo startInfo = new();
-            startInfo.FileName = ffprobePath;
-            startInfo.Arguments = arguments;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.UseShellExecute = false;
-            startInfo.CreateNoWindow = true;
+            ProcessStartInfo startInfo = new()
+            {
+                FileName = ffprobePath,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
-            Process process = new Process();
-            process.StartInfo = startInfo;
+            Process process = new()
+            {
+                StartInfo = startInfo
+            };
+
             int exitCode = 1;
             string output = "";
 
@@ -334,19 +333,22 @@ namespace AspectFix
 
         private static bool Runffmpeg(string arguments, double totalDurationMs = 0, Action<double> onProgress = null)
         {
-            ProcessStartInfo startInfo = new();
-            startInfo.FileName = ffmpegPath;
-            startInfo.Arguments = arguments;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.UseShellExecute = false;
-            startInfo.CreateNoWindow = true;
-
-            //Console.WriteLine("FFMPEG ARGUMENTS: " +arguments);
+            ProcessStartInfo startInfo = new()
+            {
+                FileName = ffmpegPath,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
             // Start the process
-            Process process = new();
-            process.StartInfo = startInfo;
+            Process process = new()
+            {
+                StartInfo = startInfo
+            };
+
             int exitCode = -1;
             string output = null;
             string err = null;
@@ -428,20 +430,7 @@ namespace AspectFix
             return exitCode == 0;
         }
 
-        // Truncates the string to maxLength and adds "..." in the middle
-        public static string ShortenString(string input, int maxLength)
-        {
-            if (string.IsNullOrEmpty(input) || input.Length <= maxLength)
-                return input;
-
-            if (maxLength < 4)
-                return input.Substring(0, maxLength); // Return the start of the string if maxLength is too small
-
-            int startLength = (maxLength - 3) / 2;
-            int endLength = (maxLength - 3) - startLength;
-
-            return input.Substring(0, startLength) + "..." + input.Substring(input.Length - endLength);
-        }
+        
 
         public static bool IsVideoFile(string filePath)
         {
@@ -500,6 +489,8 @@ namespace AspectFix
         {
             return (int)(a * (1 - t) + b * t);
         }
+
+
 
         /// <summary>
         /// Uses ffmpeg's built-in algorithm for detecting black frames to find the best time for a preview frame.
@@ -564,8 +555,6 @@ namespace AspectFix
             return end + ((start - end) / 2);
         }
 
-
-
         public static double GetVideoBitrate(string path)
         {
             var output = Runffprobe($"-v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 \"{path}\"");
@@ -596,7 +585,6 @@ namespace AspectFix
                 throw new Exception("Failed to retrieve audio bitrate.");
             }
         }
-
 
         /// <summary>
         /// Generates a new file path by appending a unique filename addition to the original file name.
@@ -648,5 +636,65 @@ namespace AspectFix
 
             return finalName;
         }
+        //public static async Task<(int left, int top, int right, int bottom)> DetectBlackBordersAsync(VideoFile video)
+        //{
+        //    string ffmpegArgs = $"-hide_banner -nostdin -ss {video.NonBlackFrame.ToString(CultureInfo.InvariantCulture)} -i \"{video.Path}\" -vframes 1 -vf cropdetect=24:16:0 -f null -";
+        //    var psi = new ProcessStartInfo
+        //    {
+        //        FileName = ffmpegPath,
+        //        Arguments = ffmpegArgs,
+        //        RedirectStandardError = true,
+        //        RedirectStandardOutput = true,
+        //        UseShellExecute = false,
+        //        CreateNoWindow = true
+        //    };
+
+        //    int left = 0, top = 0, right = 0, bottom = 0;
+        //    double width = video.Width, height = video.Height;
+
+        //    using (var process = new Process { StartInfo = psi })
+        //    {
+        //        process.Start();
+
+        //        var stdErrTask = process.StandardError.ReadToEndAsync();
+        //        var stdOutTask = process.StandardOutput.ReadToEndAsync();
+
+        //        // Wait for the process to exit with timeout
+        //        Task<bool> waitForExit = Task.Run(() => process.WaitForExit(10000));
+        //        if (!await waitForExit)
+        //        {
+        //            try { process.Kill(); } catch { }
+        //            throw new Exception("ffmpeg did not finish in time.");
+        //        }
+
+        //        await Task.WhenAll(stdErrTask, stdOutTask);
+
+        //        string stdErr = stdErrTask.Result;
+        //        string cropLine = null;
+        //        foreach (var line in stdErr.Split('\n'))
+        //        {
+        //            if (line.Contains("crop="))
+        //                cropLine = line.Trim();
+        //        }
+
+        //        if (cropLine != null)
+        //        {
+        //            var match = System.Text.RegularExpressions.Regex.Match(cropLine, @"crop=(\d+):(\d+):(\d+):(\d+)");
+        //            if (match.Success)
+        //            {
+        //                int cropW = int.Parse(match.Groups[1].Value);
+        //                int cropH = int.Parse(match.Groups[2].Value);
+        //                int cropX = int.Parse(match.Groups[3].Value);
+        //                int cropY = int.Parse(match.Groups[4].Value);
+
+        //                left = cropX;
+        //                top = cropY;
+        //                right = (int)width - cropW - cropX;
+        //                bottom = (int)height - cropH - cropY;
+        //            }
+        //        }
+        //    }
+        //    return (left, top, right, bottom);
+        //}
     }
-}
+} // End of namespace

@@ -1,19 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Path = System.IO.Path;
 
 namespace AspectFix.Components
@@ -57,15 +46,14 @@ namespace AspectFix.Components
             if (File.Exists(newVal))
             {
                 control._path = newVal;
-                newVal = FileProcessor.ShortenString(Path.GetFileName(newVal), control.MaxLength);
+                newVal = Services.Utils.ShortenString(Path.GetFileName(newVal), control.MaxLength);
             }
             else
             {
                 control._path = null;
-                newVal = FileProcessor.ShortenString(newVal, control.MaxLength);
+                newVal = Services.Utils.ShortenString(newVal, control.MaxLength);
             }
             
-            //control.SetValue(TitleProperty, newVal);
             control.TitleBox.Text = newVal;
 
             control.UpdateClickable();

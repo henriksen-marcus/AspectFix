@@ -16,7 +16,7 @@ using System.Windows.Shapes;
 using AspectFix.Components;
 using AspectFix.Services;
 using AspectFix.Views;
-using static AspectFix.FileProcessor;
+using static AspectFix.Services.FileProcessor;
 using Path = System.IO.Path;
 using Point = System.Windows.Point;
 
@@ -33,10 +33,7 @@ namespace AspectFix
             get => _iterationCount;
             set
             {
-                if (value > 3) _iterationCount = 3;
-                else if (value < 1) _iterationCount = 1;
-                else _iterationCount = value;
-
+                _iterationCount = Utils.Clamp(value, 0, 3);
                 IterationsTextBlock.Text = "Iterations: " + _iterationCount.ToString();
             }
         }
@@ -61,19 +58,17 @@ namespace AspectFix
             }
             else MainWindow.Instance.ErrorMessage("File got lost!");
 
-            //LayoutUpdated += EditView_LayoutUpdated;
-
             UpdateCropButton();
         }
-
-
-        // TODO: When rotating, make canvas fit new size to allow resizeAdorner to size properly. Flip width/height of resizeAdorner output.
-
 
         private void EditView_Loaded(object sender, RoutedEventArgs e)
         {
             _resizeAdorner = new ResizeAdorner(ResizeAdorner);
             _resizeAdorner.ThumbDragged += ResizeAdorner_ThumbDragged;
+            _resizeAdorner.ThumbDragCompleted += (s, args) =>
+            {
+                UpdateCropButton();
+            };
 
             AdornerLayer.GetAdornerLayer(ResizeAdorner).Add(_resizeAdorner);
 
@@ -105,11 +100,12 @@ namespace AspectFix
             _resizeAdorner.MaxWidth = MyCanvas.Width;
             _resizeAdorner.MaxHeight = MyCanvas.Height;
 
-            var cropOptions = GetCropOptions();
-            //if (cropOptions.ShouldCrop) ResetCrop();
-            /*else*/ FillCrop();
+            FillCrop();
 
-            Console.WriteLine($"Set canvas size. Adorner h: {_resizeAdorner.Height} Canvas height:  {MyCanvas.Height}");
+            var borders = await FileProcessor.DetectBlackBordersAsync(MainWindow.Instance.SelectedFile)
+
+            // Determine if we should not fill the crop rectangle if we have found black bars
+
         }
 
         //private void ScaleDimensions(double inWidth, double inHeight, double inX, double inY, )
@@ -121,8 +117,8 @@ namespace AspectFix
             double newLeft = Canvas.GetLeft(ResizeAdorner) - e.DeltaX / 2;
             double newTop = Canvas.GetTop(ResizeAdorner) - e.DeltaY / 2;
 
-            newLeft = Clamp(newLeft, 0, MyCanvas.ActualWidth - ResizeAdorner.ActualWidth);
-            newTop = Clamp(newTop, 0, MyCanvas.ActualHeight - ResizeAdorner.ActualHeight);
+            newLeft = Services.Utils.Clamp(newLeft, 0, MyCanvas.ActualWidth - ResizeAdorner.ActualWidth);
+            newTop = Services.Utils.Clamp(newTop, 0, MyCanvas.ActualHeight - ResizeAdorner.ActualHeight);
 
             // Prevent width/height increase on right and bottom by dragging top and left thumbs when at 0
             bool blockLeft = newLeft == 0 && e.DeltaX > 0;
@@ -264,16 +260,17 @@ namespace AspectFix
         /// <returns> If processing is possible based on if any changes have been made. </returns>
         public bool CanWeCrop()
         {
-            var options = GetCropOptions();
-            VideoFile vid = MainWindow.Instance.SelectedFile;
+            // Check if the resizeAdorner does not fill the entire preview (canvas)
+            bool adornerChanged =
+                _resizeAdorner != null &&
+                (
+                    Math.Abs(_resizeAdorner.Width - MyCanvas.Width) > 0.5 ||
+                    Math.Abs(_resizeAdorner.Height - MyCanvas.Height) > 0.5 ||
+                    Math.Abs(Canvas.GetLeft(ResizeAdorner)) > 0.5 ||
+                    Math.Abs(Canvas.GetTop(ResizeAdorner)) > 0.5
+                );
 
-            if (vid == null) return false;
-
-            var croppedDimensions = vid.GetCroppedDimensions(options);
-            (double, double) croppedDimsArr = (croppedDimensions.Item1, croppedDimensions.Item2);
-
-            // We can't process the video if there aren't any changes
-            return vid.GetDimensions() != croppedDimsArr || vid.Rotation != 0;
+            return adornerChanged || MainWindow.Instance.SelectedFile.Rotation != 0;
         }
 
         /// <summary>
@@ -281,9 +278,7 @@ namespace AspectFix
         /// </summary>
         public void UpdateCropButton()
         {
-            Components.RoundedButton btn = CropButton;
-            if (btn != null) btn.IsEnabled = CanWeCrop();
-
+            if (CropButton != null) CropButton.IsEnabled = CanWeCrop();
         }
 
         private FileProcessor.CropOptions GetCropOptions()
@@ -301,24 +296,96 @@ namespace AspectFix
 
         private void AspectDropDown_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (!_hasInitiated)
-            {
-                _hasInitiated = true;
-                return;
-            }
+            UpdateCropRegion();
+        }
 
-            UpdateCropButton();
-
-            if (AspectDropDown.SelectedIndex == 1)
+        private void UpdateCropRegion()
+        {
+            if (AspectDropDown.SelectedIndex == 1) // "Orientation"
             {
                 IterationsPanel.Visibility = Visibility.Visible;
+
+                var selFile = MainWindow.Instance.SelectedFile;
+
+                if (selFile == null) return;
+
+                // Get the canvas size (should already fill the image)
+                double canvasW = MyCanvas.ActualWidth;
+                double canvasH = MyCanvas.ActualHeight;
+
+                // Start with the full canvas as the initial crop region
+                double cropLeft = 0, cropTop = 0, cropW = canvasW, cropH = canvasH;
+
+                // Use the file's original orientation for the first step
+                Services.Orientation currentOrientation = selFile.Orientation;
+
+                for (int i = 0; i < IterationCount; i++)
+                {
+                    // Determine target aspect ratio: if current is landscape, target portrait, and vice versa
+                    double targetAspect = currentOrientation == Services.Orientation.Landscape
+                        ? (cropH / cropW)
+                        : (cropW / cropH);
+
+                    double newCropW, newCropH;
+
+                    if (currentOrientation == Services.Orientation.Landscape)
+                    {
+                        // Target portrait: fill height, width = height * targetAspect
+                        newCropH = cropH;
+                        newCropW = newCropH * targetAspect;
+                        if (newCropW > cropW)
+                        {
+                            newCropW = cropW;
+                            newCropH = newCropW / targetAspect;
+                        }
+                    }
+                    else
+                    {
+                        // Target landscape: fill width, height = width * targetAspect
+                        newCropW = cropW;
+                        newCropH = newCropW * targetAspect;
+                        if (newCropH > cropH)
+                        {
+                            newCropH = cropH;
+                            newCropW = newCropH / targetAspect;
+                        }
+                    }
+
+                    // Center the new crop region within the current crop region
+                    double newLeft = cropLeft + (cropW - newCropW) / 2;
+                    double newTop = cropTop + (cropH - newCropH) / 2;
+
+                    // Update for next iteration
+                    cropLeft = newLeft;
+                    cropTop = newTop;
+                    cropW = newCropW;
+                    cropH = newCropH;
+
+                    // Alternate orientation for next iteration
+                    currentOrientation = currentOrientation == Services.Orientation.Landscape
+                        ? Services.Orientation.Portrait
+                        : Services.Orientation.Landscape;
+
+                    Console.WriteLine($"Iteration {i + 1}: Left={cropLeft}, Top={cropTop}, Width={cropW}, Height={cropH}");
+                }
+
+                // Set the final crop region to the adorner
+                _resizeAdorner.overrideWidth(cropW);
+                _resizeAdorner.overrideHeight(cropH);
+                Canvas.SetLeft(ResizeAdorner, cropLeft);
+                Canvas.SetTop(ResizeAdorner, cropTop);
+
+                // Output the result in video space
+                double videoCropW = (cropW / MyCanvas.ActualWidth) * selFile.Width;
+                double videoCropH = (cropH / MyCanvas.ActualHeight) * selFile.Height;
+                CroppedTitle.Title = $"Cropped {(int)videoCropW}x{(int)videoCropH}";
             }
             else
             {
-                IterationsPanel.Visibility = Visibility.Collapsed;
+                if (IterationsPanel != null) IterationsPanel.Visibility = Visibility.Collapsed;
             }
 
-            UpdatePreview();
+            UpdateCropButton();
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -329,16 +396,14 @@ namespace AspectFix
 
         private void PlusButton_Click(object sender, RoutedEventArgs e)
         {
-            int oldIterationCount = IterationCount;
             IterationCount++;
-            if (oldIterationCount != IterationCount) UpdatePreview();
+            UpdateCropRegion();
         }
 
         private void MinusButton_Click(object sender, RoutedEventArgs e)
         {
-            int oldIterationCount = IterationCount;
             IterationCount--;
-            if (oldIterationCount != IterationCount) UpdatePreview();
+            UpdateCropRegion();
         }
         
         private async void CropButton_Click(object sender, RoutedEventArgs e)
@@ -348,29 +413,18 @@ namespace AspectFix
 
             // Insert final size properties based on resize adorner changes
             var selFile = MainWindow.Instance.SelectedFile;
-            double wScale = _resizeAdorner.Width / MyCanvas.Width;
-            double hScale = _resizeAdorner.Height / MyCanvas.Height;
-            double finalWidth = wScale * selFile.Width;
-            double finalHeight = hScale * selFile.Height;
+            //double wScale = _resizeAdorner.Width / MyCanvas.Width;
+            //double hScale = _resizeAdorner.Height / MyCanvas.Height;
+            //double finalWidth = wScale * selFile.Width;
+            //double finalHeight = hScale * selFile.Height;
 
-            //double xScale = Canvas.GetLeft(ResizeAdorner);
-            //double yScale = Canvas.GetTop(ResizeAdorner);
-            //double finalX = xScale * finalWidth;
-            //double finalY = yScale * finalHeight;
+            //double xRatio = Canvas.GetLeft(ResizeAdorner) / MyCanvas.Width;
+            //double yRatio = Canvas.GetTop(ResizeAdorner) / MyCanvas.Height;
 
-            double xRatio = Canvas.GetLeft(ResizeAdorner) / MyCanvas.Width;
-            double yRatio = Canvas.GetTop(ResizeAdorner) / MyCanvas.Height;
+            //double finalX = xRatio * selFile.Width;
+            //double finalY = yRatio * selFile.Height;
 
-            double finalX = xRatio * selFile.Width;
-            double finalY = yRatio * selFile.Height;
-
-
-            Console.WriteLine($"wScale {wScale} hScale {hScale} finalWidth {finalWidth} finalHeight {finalHeight} origWidth {selFile.Width} origHeight {selFile.Height}");
-
-            selFile.FinalWidth = finalWidth;
-            selFile.FinalHeight = finalHeight;
-            selFile.FinalX = finalX;
-            selFile.FinalY = finalY;
+            (selFile.FinalWidth, selFile.FinalHeight, selFile.FinalX, selFile.FinalY) = AdornerToVideoSpace();
 
             try
             {
@@ -383,76 +437,41 @@ namespace AspectFix
             }
 
             // Add to recent files list
-            MainWindow.Instance.HomeViewModel.AddFile(MainWindow.Instance.SelectedFile.Path);
+            MainWindow.Instance.HomeViewModel.AddFile(MainWindow.Instance.SelectedFile.NewPath);
             MainWindow.Instance.ToggleOverlay();
             MainWindow.Instance.FileProcessed();
             Cleanup();
             MainWindow.Instance.ChangeView("Home");
         }
 
-        //void UpdateProgressBar(long size)
-        //{
-        //    MainWindow.Instance.LoadingOverlay.UpdateProgress(100);
-        //}
-
         public async Task CropWithProgressUIAsync()
         {
-            var options = GetCropOptions();
-            _currentCropOptions = options;
-
             // Start Crop on a background thread
-            var cropTask = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile, options));
+            var cropTask = Task.Run(() => FileProcessor.Crop(MainWindow.Instance.SelectedFile));
 
             // Await crop completion (handle exceptions as needed)
             var result = await cropTask;
 
-            Console.WriteLine("RESULT: " + result);
-
             if (result == null) // arbitrary minimum
             {
-                Dispatcher.Invoke(() => MainWindow.Instance.LoadingOverlay.UpdateProgress(0));
                 MainWindow.Instance.ErrorMessage("Cropping failed. Please check your input and try again.");
             }
             else
             {
-                Dispatcher.Invoke(() => MainWindow.Instance.LoadingOverlay.UpdateProgress(100));
+                Dispatcher.Invoke(() => MainWindow.Instance.LoadingOverlay.UpdateProgress(0));
             }
         }
 
         private void RotateLeftButton_OnClick(object sender, RoutedEventArgs e)
         {
             MainWindow.Instance.SelectedFile?.AddRotation(-90);
-            UpdatePreview();
             UpdateCropButton();
         }
-
+        // TODO: Generate preview image after rotation
         private void RotateRightButton_OnClick(object sender, RoutedEventArgs e)
         {
             MainWindow.Instance.SelectedFile?.AddRotation(90);
-            UpdatePreview();
             UpdateCropButton();
-
-            var imageBrush = ImagePreviewNew;
-            if (imageBrush.ImageSource is BitmapSource bitmapSource)
-            {
-                // Get the image's original dimensions
-                double imageWidth = bitmapSource.PixelWidth;
-                double imageHeight = bitmapSource.PixelHeight;
-
-                double rectangleWidth = NewImageContainer.ActualWidth;
-                double rectangleHeight = NewImageContainer.ActualHeight;
-
-                double scale = Math.Min(rectangleWidth / imageWidth, rectangleHeight / imageHeight);
-
-                double scaledWidth = imageWidth * scale;
-                double scaledHeight = imageHeight * scale;
-
-                MyCanvas.Width = scaledWidth;
-                MyCanvas.Height = scaledHeight;
-            }
-
-            _resizeAdorner.MaxWidth = MyCanvas.Width;
-            _resizeAdorner.MaxHeight = MyCanvas.Height;
         }
         
         private void Rectangle_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -479,8 +498,8 @@ namespace AspectFix
                 double newLeft = Canvas.GetLeft(ResizeAdorner) + deltaX;
                 double newTop = Canvas.GetTop(ResizeAdorner) + deltaY;
 
-                newLeft = Clamp(newLeft, 0, MyCanvas.ActualWidth - ResizeAdorner.ActualWidth);
-                newTop = Clamp(newTop, 0, MyCanvas.ActualHeight - ResizeAdorner.ActualHeight);
+                newLeft = Services.Utils.Clamp(newLeft, 0, MyCanvas.ActualWidth - ResizeAdorner.ActualWidth);
+                newTop = Services.Utils.Clamp(newTop, 0, MyCanvas.ActualHeight - ResizeAdorner.ActualHeight);
 
                 _resizeAdorner.MaxWidth = MyCanvas.ActualWidth - newLeft;
                 _resizeAdorner.MaxHeight = MyCanvas.ActualHeight - newTop;
@@ -499,32 +518,9 @@ namespace AspectFix
             Cursor = Cursors.Arrow;
         }
 
-        public static double Clamp(double value, double min, double max)
-        {
-            if (value < min) return min;
-            return value > max ? max : value;
-        }
+        private void ResetCropButton_OnClick(object sender, RoutedEventArgs e) => ResetCrop();
 
-        private void ResetCropButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            //var scaleX = MainWindow.Instance.SelectedFile.Width / NewImageContainer.ActualWidth;
-            //var scaleY = MainWindow.Instance.SelectedFile.Height / NewImageContainer.ActualHeight;
-
-            //(double w, double h, _, _) = MainWindow.Instance.SelectedFile.GetCroppedDimensions(GetCropOptions());
-
-            //_resizeAdorner.overrideWidth(w / scaleX);
-            //_resizeAdorner.overrideHeight(h / scaleY);
-
-            //Canvas.SetLeft(ResizeAdorner, MyCanvas.ActualWidth / 2 - _resizeAdorner.Width / 2);
-            //Canvas.SetTop(ResizeAdorner, MyCanvas.ActualHeight / 2 - _resizeAdorner.Height / 2);
-
-            ResetCrop();
-        }
-
-        private void FillCropButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            FillCrop();
-        }
+        private void FillCropButton_OnClick(object sender, RoutedEventArgs e) => FillCrop();
 
         private void FillCrop()
         {
@@ -551,8 +547,13 @@ namespace AspectFix
 
             _resizeAdorner.overrideWidth(MyCanvas.Width);
             _resizeAdorner.overrideHeight(MyCanvas.Height);
+
+            UpdateCropButton();
         }
 
+        /// <summary>
+        /// Resets the resize adorner to the previous automatic cropped dimensions of the video.
+        /// </summary>
         private void ResetCrop()
         {
             (double w, double h, _, _) = MainWindow.Instance.SelectedFile.GetCroppedDimensions(GetCropOptions());
@@ -568,6 +569,42 @@ namespace AspectFix
             //Console.WriteLine($"Width {MainWindow.Instance.SelectedFile.Width} Height {MainWindow.Instance.SelectedFile.Height} CroppedW {MainWindow.Instance.SelectedFile.CroppedWidth} CroppedH {MainWindow.Instance.SelectedFile.CroppedHeight}");
             Canvas.SetLeft(ResizeAdorner, MyCanvas.Width / 2 - _resizeAdorner.Width / 2);
             Canvas.SetTop(ResizeAdorner, MyCanvas.Height / 2 - _resizeAdorner.Height / 2);
+
+            UpdateCropButton();
+        }
+
+        // Converts a width/height in ResizeAdorner (adorner) space to video resolution space
+        private (double videoWidth, double videoHeight, double videoX, double videoY) AdornerToVideoSpace()
+        {
+            var selFile = MainWindow.Instance.SelectedFile;
+
+            double wScale = _resizeAdorner.Width / MyCanvas.Width;
+            double hScale = _resizeAdorner.Height / MyCanvas.Height;
+            double outWidth = wScale * selFile.Width;
+            double outHeight = hScale * selFile.Height;
+
+            double xRatio = Canvas.GetLeft(ResizeAdorner) / MyCanvas.Width;
+            double yRatio = Canvas.GetTop(ResizeAdorner) / MyCanvas.Height;
+            double outX = xRatio * selFile.Width;
+            double outY = yRatio * selFile.Height;
+
+            return (outWidth, outHeight, outX, outY);
+        }
+
+        // Converts a width/height in video resolution space to ResizeAdorner (adorner) space
+        private (double adornerWidth, double adornerHeight) VideoToAdornerSpace()
+        {
+            var selFile = MainWindow.Instance.SelectedFile;
+
+            // Calculate the scale factors between the video and the canvas
+            double wScale = MyCanvas.Width / selFile.Width;
+            double hScale = MyCanvas.Height / selFile.Height;
+
+            // Convert video dimensions and position to adorner (canvas) space
+            double adornerWidth = selFile.Width * wScale;
+            double adornerHeight = selFile.Height * hScale;
+
+            return (adornerWidth, adornerHeight);
         }
     }
 }

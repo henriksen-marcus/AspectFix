@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using static AspectFix.FileProcessor;
 
 namespace AspectFix.Services
 {
@@ -88,7 +87,7 @@ namespace AspectFix.Services
 
         /// <param name="options">User defined options on how the video should be cropped</param>
         /// <returns>The cropped dimensions and the x, y position of the video in the frame</returns>
-        public (double, double, double, double) GetCroppedDimensions(CropOptions options)
+        public (double, double, double, double) GetCroppedDimensions(FileProcessor.CropOptions options)
         {
             if (!options.ShouldCrop) return (Width, Height, 0, 0);
             if (options.IsAuto) return GetAnalyzedCroppedDimensions();
@@ -113,7 +112,7 @@ namespace AspectFix.Services
             return (CroppedWidth, CroppedHeight, 0, 0);
         }
 
-        public (double, double, double, double) GetFinalDimensions(CropOptions options)
+        public (double, double, double, double) GetFinalDimensions()
         {
             return (FinalWidth, FinalHeight, FinalX/*BlackPixels.left*/, FinalY/*BlackPixels.top*/);
         }

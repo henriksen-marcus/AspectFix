@@ -50,7 +50,7 @@ namespace AspectFix
 
         private bool ValidateFile(string path)
         {
-            return File.Exists(path) && FileProcessor.IsVideoFile(path);
+            return File.Exists(path) && Services.FileProcessor.IsVideoFile(path);
         }
 
         private void ToggleDragOverlay(bool isValidFile)
